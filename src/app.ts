@@ -19,7 +19,6 @@ const buildApp = (): FastifyInstance => {
 
   app.register(fastifyStatic, {
     root: path.join(__dirname, '../public'),
-    prefix: '/public/', // optional: default '/'
   });
 
   // Health check
