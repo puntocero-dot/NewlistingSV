@@ -103,6 +103,9 @@ async function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
 
+    // Capture history BEFORE appending the new user message to avoid duplicate consecutive "user" roles
+    const currentHistory = getHistory();
+
     appendMessage('user', text);
     input.value = '';
 
@@ -110,7 +113,7 @@ async function sendMessage() {
         const response = await fetch('/api/conversations/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text, history: getHistory() })
+            body: JSON.stringify({ message: text, history: currentHistory })
         });
         
         const data = await response.json();
