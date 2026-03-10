@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Seller-Ease Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .portal-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            padding: 3rem 1rem;
+            text-align: center;
+            border-radius: 8px;
+            margin: 2rem 0;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+        #file-input {
+            display: none;
+        }
+        .preview-img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+        #ai-results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .loader {
+            display: none;
+            color: var(--primary);
+            font-weight: 600;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <nav>
+        <div class="logo">ARIA <span>v2.0</span> Seller-Ease</div>
+        <div class="nav-links">
+            <a href="/">Volver al Sitio</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="portal-container">
+            <h2 style="color:var(--primary); margin-bottom: 1rem;">Portal de Agentes</h2>
+            <p>Sube una foto de la propiedad para que ARIA extraiga datos geográficos, elabore copy de ventas estructurado y recomiende precio proyectado inteligente.</p>
+            
+            <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">📸</div>
+                <h3>Toca para subir foto</h3>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-muted);">o arrastra la imagen aquí</p>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+            
+            <img id="image-preview" class="preview-img">
+            
+            <button class="btn-primary" id="analyze-btn" style="width: 100%; margin-top: 1rem; display: none;" onclick="analyzeImage()">Analizar Propiedad con ARIA</button>
+            <div id="loader" class="loader">🧠 ARIA está procesando la imagen...</div>
+            
+            <div id="ai-results" class="hidden"></div>
+        </div>
+    </main>
+
+    <script src="portal.js"></script>
+</body>
+</html>

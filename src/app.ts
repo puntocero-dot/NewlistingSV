@@ -10,6 +10,7 @@ import { appointmentRoutes } from './routes/appointments';
 const buildApp = (): FastifyInstance => {
   const app = Fastify({
     logger: true,
+    bodyLimit: 52428800 // 50MB
   });
 
   // Middleware

@@ -49,6 +49,15 @@
 
         <section id="inventory" class="inventory-section">
             <h2 class="section-title">Cartera de Propiedades</h2>
+            
+            <div class="category-filters" id="category-filters">
+                <button class="filter-btn active" onclick="filterProperties('all')">Todos</button>
+                <button class="filter-btn" onclick="filterProperties('Playa')">Playa</button>
+                <button class="filter-btn" onclick="filterProperties('Residencial')">Residencial</button>
+                <button class="filter-btn" onclick="filterProperties('Oficinas')">Oficinas</button>
+                <button class="filter-btn" onclick="filterProperties('Terreno')">Terrenos</button>
+            </div>
+
             <div id="properties-grid" class="properties-grid">
                 <!-- Data injected by JS -->
             </div>
@@ -74,6 +83,16 @@
         <div class="chat-input-area">
             <input type="text" id="user-input" placeholder="Escribe tu mensaje...">
             <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <!-- Property Details Modal -->
+    <div id="property-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closePropertyModal()">&times;</span>
+            <div id="modal-body">
+                <!-- Data injected by JS -->
+            </div>
         </div>
     </div>
 

@@ -1,3 +1,5 @@
+let allProperties = [];
+
 async function init() {
     loadProperties();
     loadAgents();
@@ -6,20 +8,69 @@ async function init() {
 async function loadProperties() {
     try {
         const res = await fetch('/api/properties');
-        const properties = await res.json();
-        const grid = document.getElementById('properties-grid');
-        grid.innerHTML = properties.map(p => `
-            <div class="property-card">
-                <div class="prop-img">🏠</div>
-                <div class="prop-info">
+        allProperties = await res.json();
+        renderProperties(allProperties);
+    } catch (e) { console.error('Error properties:', e); }
+}
+
+function renderProperties(properties) {
+    const grid = document.getElementById('properties-grid');
+    grid.innerHTML = properties.map(p => `
+        <div class="property-card" onclick="openPropertyModal('${p.id}')">
+            <div class="prop-img">🏠</div>
+            <div class="prop-info">
+                <span class="prop-tag">${p.mode} &middot; ${p.category || 'General'}</span>
+                <h3>${p.title}</h3>
+                <p>${p.zone}</p>
+                <div class="prop-price">$${p.price.toLocaleString()}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterProperties(category) {
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    if (category === 'all') {
+        renderProperties(allProperties);
+    } else {
+        const filtered = allProperties.filter(p => p.category === category);
+        renderProperties(filtered);
+    }
+}
+
+async function openPropertyModal(id) {
+    try {
+        const res = await fetch(`/api/properties/${id}`);
+        const p = await res.json();
+        
+        const modalBody = document.getElementById('modal-body');
+        modalBody.innerHTML = `
+            <div class="modal-grid">
+                <div class="modal-img">🏠</div>
+                <div class="modal-info">
                     <span class="prop-tag">${p.mode}</span>
-                    <h3>${p.title}</h3>
-                    <p>${p.zone}</p>
-                    <div class="prop-price">$${p.price.toLocaleString()}</div>
+                    <span class="prop-tag" style="background:var(--accent);">${p.category}</span>
+                    <h2>${p.title}</h2>
+                    <p style="margin-bottom:0.5rem; color: #fff;">📍 ${p.zone}</p>
+                    <div class="price">$${p.price.toLocaleString()}</div>
+                    <p>${p.description}</p>
+                    <div class="features-list">
+                        ${p.features.map(f => `<span>✓ ${f}</span>`).join('')}
+                    </div>
                 </div>
             </div>
-        `).join('');
-    } catch (e) { console.error('Error properties:', e); }
+        `;
+        document.getElementById('property-modal').classList.remove('hidden');
+    } catch(e) {
+        console.error('Error loading property details', e);
+    }
+}
+
+function closePropertyModal() {
+    document.getElementById('property-modal').classList.add('hidden');
 }
 
 async function loadAgents() {
