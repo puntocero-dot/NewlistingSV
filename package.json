@@ -1,0 +1,29 @@
+{
+  "name": "newlistingsv",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.ts",
+    "seed": "ts-node prisma/seed.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/static": "^9.0.0",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^7.4.2",
+    "@types/node": "^25.4.0",
+    "dotenv": "^17.3.1",
+    "fastify": "^5.8.2",
+    "nodemon": "^3.1.14",
+    "prisma": "^7.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
+  }
+}

@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Property {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  currency    String   @default("USD")
+  mode        String   // Venta / Alquiler
+  category    String   // Playa, Residencial, etc.
+  zone        String
+  surface     Float
+  features    String[]
+  images      String[]
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Vector for pgvector similarity search (handled manually or via raw SQL usually)
+  // embedding Unsupported("vector(768)")? 
+}
+
+model Agent {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  zone      String?
+  calendar  String?  // Google Calendar ID
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id          String         @id @default(uuid())
+  name        String?
+  phone       String?
+  email       String?
+  budget      Float?
+  preferences Json?
+  qualified   Boolean        @default(false)
+  conversations Conversation[]
+  createdAt   DateTime       @default(now())
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id])
+  messages  Json     // Chat history
+  summary   String?
+  createdAt DateTime @default(now())
+}

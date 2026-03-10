@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA — Real Estate AI Ecosystem</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="glass-bg"></div>
+    
+    <nav>
+        <div class="logo">ARIA <span>v2.0</span></div>
+        <div class="nav-links">
+            <a href="#dashboard">Dashboard</a>
+            <a href="#inventory">Propiedades</a>
+            <a href="#agents">Agentes</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <h1>Arquitectura de <br><span class="gradient-text">Experiencias de Lujo</span></h1>
+            <p>ARIA es el ecosistema de inteligencia real estate que orquesta el futuro de las inversiones inmobiliarias.</p>
+            <div class="cta-group">
+                <button class="btn-primary" onclick="openChat()">Hablar con ARIA</button>
+                <button class="btn-secondary">Ver Catálogo</button>
+            </div>
+        </section>
+
+        <section id="dashboard" class="stats-grid">
+            <div class="stat-card">
+                <h3>Leads Calificados</h3>
+                <div id="leads-count" class="value">24</div>
+                <div class="trend">+12% esta semana</div>
+            </div>
+            <div class="stat-card">
+                <h3>Ventas Proyectadas</h3>
+                <div class="value">$2.4M</div>
+                <div class="trend">En embudo de cierre</div>
+            </div>
+            <div class="stat-card">
+                <h3>Visitas Agendadas</h3>
+                <div id="visitas-count" class="value">8</div>
+                <div class="trend">Próximas 48h</div>
+            </div>
+        </section>
+
+        <section id="inventory" class="inventory-section">
+            <h2 class="section-title">Cartera de Propiedades</h2>
+            <div id="properties-grid" class="properties-grid">
+                <!-- Data injected by JS -->
+            </div>
+        </section>
+
+        <section id="agents" class="agents-section">
+            <h2 class="section-title">Agentes Activos</h2>
+            <div id="agents-list" class="agents-list">
+                <!-- Data injected by JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Chat Widget -->
+    <div id="chat-widget" class="chat-widget hidden">
+        <div class="chat-header">
+            <div class="chat-title">ARIA Intelligence</div>
+            <button onclick="closeChat()">×</button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="msg model">Hola, soy ARIA. ¿En qué puedo asistirte hoy con tu búsqueda de propiedades de alto valor?</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="user-input" placeholder="Escribe tu mensaje...">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
