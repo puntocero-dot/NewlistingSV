@@ -42,11 +42,23 @@ export class AIService {
     if (!this.model) {
         return "*(Modo Demo: API Key de Gemini no configurada)* ¡Hola! Soy ARIA en versión demo local. ¿En qué puedo asistirte?";
     }
-    const chat = this.model.startChat({
-      history: history.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
+    let validHistory: any[] = [];
+    for (const msg of history) {
+      if (!msg.content) continue;
+      const role = msg.role === 'user' ? 'user' : 'model';
+      // Gemini history must start with 'user'
+      if (validHistory.length === 0 && role !== 'user') continue;
+      // Roles must alternate
+      if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === role) continue;
+      
+      validHistory.push({
+        role,
         parts: [{ text: msg.content }],
-      })),
+      });
+    }
+
+    const chat = this.model.startChat({
+      history: validHistory,
     });
 
     const result = await chat.sendMessage(prompt);

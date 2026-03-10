@@ -42,6 +42,17 @@ function openChat() {
 
 init();
 
+function requestAccess(e) {
+    e.preventDefault();
+    const pin = prompt("Acceso Restringido. Ingrese el PIN de Agente ARIA:");
+    if (pin === "2026") {
+        document.getElementById('dashboard').style.display = 'grid';
+        window.location.hash = '#dashboard';
+    } else if (pin !== null) {
+        alert("PIN incorrecto. Acceso denegado.");
+    }
+}
+
 
 function closeChat() {
     document.getElementById('chat-widget').classList.add('hidden');
