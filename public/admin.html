@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: rgba(0,0,0,0.8);
+            padding: 2rem;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .content {
+            flex: 1;
+            padding: 3rem;
+        }
+        .nav-item {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: block;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: color 0.3s;
+        }
+        .nav-item:hover, .nav-item.active {
+            color: var(--primary);
+        }
+        .admin-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 2rem;
+        }
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            color: white;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-bg"></div>
+    
+    <!-- Login View (Shown if no token) -->
+    <div id="login-view" class="auth-container">
+        <h2 style="color:var(--primary); margin-bottom: 2rem; text-align:center;">ARIA Admin Login</h2>
+        <div class="form-group">
+            <input type="email" id="email" placeholder="Email (admin@aria.com)">
+        </div>
+        <div class="form-group">
+            <input type="password" id="password" placeholder="Contraseña (admin2026)">
+        </div>
+        <button class="btn-primary" style="width:100%" onclick="loginAdmin()">Ingresar al Sistema</button>
+        <p id="login-error" style="color:red; margin-top:1rem; text-align:center; display:none;"></p>
+    </div>
+
+    <!-- Dashboard View (Shown if authenticated) -->
+    <div id="dashboard-view" class="admin-layout" style="display:none;">
+        <div class="sidebar">
+            <h2 style="color:var(--primary); margin-bottom: 2rem;">ARIA <span>Admin</span></h2>
+            <a href="#" class="nav-item active">Métricas Reales</a>
+            <a href="#" class="nav-item">Gestión de Agentes</a>
+            <a href="#" class="nav-item">Inventario Completo</a>
+            <a href="#" class="nav-item" onclick="logout()" style="color:#ff6b6b; margin-top: 3rem;">Cerrar Sesión</a>
+        </div>
+        <div class="content">
+            <h1>Panel Central de Control</h1>
+            
+            <div class="stats-grid" style="margin-top: 3rem;">
+                <div class="stat-card">
+                    <h3>Total Usuarios</h3>
+                    <div class="value">34</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Propiedades Activas</h3>
+                    <div class="value">12</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Ventas ARIA</h3>
+                    <div class="value">$2.4M</div>
+                </div>
+            </div>
+
+            <div class="admin-card" style="margin-top: 3rem;">
+                <h3 style="color:var(--primary); margin-bottom:1rem;">Registrar Agente Nuevo</h3>
+                <div style="display:flex; gap:1rem;">
+                    <input type="email" id="new-agent-email" placeholder="Email del Agente" style="padding:0.8rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:4px; flex:1;">
+                    <input type="password" id="new-agent-pass" placeholder="Clave Asignada" style="padding:0.8rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:4px; flex:1;">
+                    <button class="btn-primary" onclick="createAgent()">Registrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple JWT check on load
+        function checkAuth() {
+            const token = localStorage.getItem('aria_token');
+            const role = localStorage.getItem('aria_role');
+            if(token && role === 'ADMIN') {
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('dashboard-view').style.display = 'flex';
+            } else {
+                document.getElementById('login-view').style.display = 'block';
+                document.getElementById('dashboard-view').style.display = 'none';
+            }
+        }
+
+        async function loginAdmin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                const data = await res.json();
+                if(data.token && data.user.role === 'ADMIN') {
+                    localStorage.setItem('aria_token', data.token);
+                    localStorage.setItem('aria_role', data.user.role);
+                    checkAuth();
+                } else {
+                    document.getElementById('login-error').innerText = data.error || 'No tienes permisos de Administrador.';
+                    document.getElementById('login-error').style.display = 'block';
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function createAgent() {
+            const email = document.getElementById('new-agent-email').value;
+            const password = document.getElementById('new-agent-pass').value;
+            const token = localStorage.getItem('aria_token');
+            try {
+                // Technically this uses the public register, but in production it should be an admin-only route
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({email, password, role: 'AGENT', name: 'Agente Nuevo'})
+                });
+                if(res.ok) alert('Agente creado exitosamente!');
+                else alert('Error creando agente');
+            } catch(e) { console.error(e); }
+        }
+
+        function logout() {
+            localStorage.removeItem('aria_token');
+            localStorage.removeItem('aria_role');
+            checkAuth();
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

@@ -9,6 +9,25 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  ADMIN
+  AGENT
+  CLIENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Hashed password
+  role      Role     @default(CLIENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  agent     Agent?
+  lead      Lead?
+}
+
 model Property {
   id          String   @id @default(uuid())
   title       String
@@ -25,13 +44,12 @@ model Property {
   longitude   Float?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  // Vector for pgvector similarity search (handled manually or via raw SQL usually)
-  // embedding Unsupported("vector(768)")? 
 }
 
 model Agent {
   id        String   @id @default(uuid())
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id])
   name      String
   email     String   @unique
   phone     String?
@@ -42,6 +60,8 @@ model Agent {
 
 model Lead {
   id          String         @id @default(uuid())
+  userId      String?        @unique
+  user        User?          @relation(fields: [userId], references: [id])
   name        String?
   phone       String?
   email       String?

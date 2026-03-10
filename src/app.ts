@@ -7,6 +7,9 @@ import { conversationRoutes } from './routes/conversations';
 import { agentRoutes } from './routes/agents';
 import { appointmentRoutes } from './routes/appointments';
 
+import { authRoutes } from './routes/auth';
+import authPlugin from './plugins/auth';
+
 const buildApp = (): FastifyInstance => {
   const app = Fastify({
     logger: true,
@@ -22,12 +25,16 @@ const buildApp = (): FastifyInstance => {
     root: path.join(__dirname, '../public'),
   });
 
+  // Register Auth Plugin (MUST be before routes)
+  app.register(authPlugin);
+
   // Health check
   app.get('/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 
   // Routes
+  app.register(authRoutes, { prefix: '/api/auth' });
   app.register(propertyRoutes, { prefix: '/api/properties' });
   app.register(conversationRoutes, { prefix: '/api/conversations' });
   app.register(agentRoutes, { prefix: '/api/agents' });

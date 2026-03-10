@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Cliente VIP</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .portal-layout { max-width: 1000px; margin: 40px auto; padding: 20px; }
+        .auth-container { max-width: 400px; margin: 100px auto; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group input { width: 100%; padding: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: white; font-size: 1rem; }
+        .welcome-card { background: var(--card-bg); padding: 3rem; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <nav>
+        <div class="logo">ARIA <span>Client VIP</span></div>
+        <div class="nav-links">
+            <a href="/">Volver al Sitio</a>
+        </div>
+    </nav>
+    
+    <div id="login-view" class="auth-container">
+        <h2 style="color:var(--primary); margin-bottom: 2rem; text-align:center;">Acceso Exclusivo de Clientes</h2>
+        <div class="form-group"><input type="email" id="email" placeholder="Correo Electrónico"></div>
+        <div class="form-group"><input type="password" id="password" placeholder="Su Contraseña"></div>
+        <button class="btn-primary" style="width:100%" onclick="loginClient()">Entrar a mi Bóveda</button>
+        <p id="login-error" style="color:red; margin-top:1rem; text-align:center; display:none;"></p>
+    </div>
+
+    <div id="dashboard-view" class="portal-layout" style="display:none;">
+        <div class="welcome-card">
+            <h1 style="color:var(--primary); margin-bottom:1rem;">Bienvenido de vuelta.</h1>
+            <p>Este es su espacio privado donde la inteligencia de ARIA almacena sus análisis personalizados, favoritos y conversaciones pasadas.</p>
+            <br>
+            <div style="display:flex; justify-content:center; gap:2rem; margin-top:2rem;">
+                <div style="background:rgba(255,255,255,0.05); padding:2rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); width:200px;">
+                    <h3>Favoritos</h3>
+                    <div style="font-size:2rem; color:var(--primary); margin-top:1rem;">0</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.05); padding:2rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); width:200px;">
+                    <h3>Conversaciones</h3>
+                    <div style="font-size:2rem; color:var(--primary); margin-top:1rem;">1</div>
+                </div>
+            </div>
+            <button class="btn-secondary" style="margin-top:4rem;" onclick="logout()">Cerrar Portal</button>
+        </div>
+    </div>
+
+    <script>
+        function checkAuth() {
+            const token = localStorage.getItem('aria_token');
+            const role = localStorage.getItem('aria_role');
+            if(token && role === 'CLIENT') {
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('dashboard-view').style.display = 'block';
+            } else {
+                document.getElementById('login-view').style.display = 'block';
+                document.getElementById('dashboard-view').style.display = 'none';
+            }
+        }
+
+        async function loginClient() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                const data = await res.json();
+                if(data.token && data.user.role === 'CLIENT') {
+                    localStorage.setItem('aria_token', data.token);
+                    localStorage.setItem('aria_role', data.user.role);
+                    checkAuth();
+                } else {
+                    document.getElementById('login-error').innerText = data.error || 'Credenciales inválidas para cliente.';
+                    document.getElementById('login-error').style.display = 'block';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function logout() {
+            localStorage.removeItem('aria_token');
+            localStorage.removeItem('aria_role');
+            checkAuth();
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>

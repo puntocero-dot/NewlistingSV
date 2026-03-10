@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA Seller-Ease (Agent Portal)</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .portal-layout { max-width: 600px; margin: 20px auto; padding: 20px; }
+        .auth-container { max-width: 400px; margin: 100px auto; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group input { width: 100%; padding: 1rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: white; font-size: 1rem; }
+        
+        .upload-area { border: 2px dashed rgba(255, 255, 255, 0.2); padding: 3rem 1rem; text-align: center; border-radius: 8px; margin: 2rem 0; cursor: pointer; transition: border-color 0.3s; }
+        .upload-area:hover { border-color: var(--primary); }
+        #file-input { display: none; }
+        .preview-img { max-width: 100%; border-radius: 8px; margin-top: 1rem; display: none; }
+        #ai-results { margin-top: 2rem; padding: 1.5rem; background: rgba(0, 0, 0, 0.5); border-radius: 8px; white-space: pre-wrap; line-height: 1.6; }
+        .loader { display: none; color: var(--primary); font-weight: 600; margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <nav>
+        <div class="logo">ARIA <span>Agent Connect</span></div>
+        <div class="nav-links">
+            <a href="/">Volver al Sitio</a>
+        </div>
+    </nav>
+    
+    <div id="login-view" class="auth-container">
+        <h2 style="color:var(--primary); margin-bottom: 2rem; text-align:center;">Acceso Seguro de Agente</h2>
+        <div class="form-group"><input type="email" id="email" placeholder="Correo de Agente"></div>
+        <div class="form-group"><input type="password" id="password" placeholder="Contraseña asignada"></div>
+        <button class="btn-primary" style="width:100%" onclick="loginAgent()">Autorizar</button>
+        <p id="login-error" style="color:red; margin-top:1rem; text-align:center; display:none;"></p>
+    </div>
+
+    <div id="dashboard-view" class="portal-layout" style="display:none; background: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+        <h2 style="color:var(--primary); margin-bottom: 1rem; display:flex; justify-content:space-between; align-items:center;">
+            Seller-Ease Portal
+            <button onclick="logout()" style="background:transparent; border:none; color:#ff6b6b; cursor:pointer;">Salir</button>
+        </h2>
+        <p style="color:var(--text-muted)">Carga la foto de la propiedad directamente desde tu cámara. Asegúrate de tener conexión a la base de ARIA.</p>
+        
+        <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">📸</div>
+            <h3>Toca para subir o tomar foto</h3>
+            <input type="file" id="file-input" accept="image/*" capture="environment">
+        </div>
+        
+        <img id="image-preview" class="preview-img">
+        <button class="btn-primary" id="analyze-btn" style="width: 100%; margin-top: 1rem; display: none;" onclick="analyzeImage()">Generar Ficha Inteligente</button>
+        <div id="loader" class="loader">🧠 ARIA está procesando la imagen con Visión e IA...</div>
+        <div id="ai-results" class="hidden"></div>
+    </div>
+
+    <script src="portal.js"></script>
+    <script>
+        function checkAuth() {
+            const token = localStorage.getItem('aria_token');
+            const role = localStorage.getItem('aria_role');
+            if(token && (role === 'AGENT' || role === 'ADMIN')) {
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('dashboard-view').style.display = 'block';
+            } else {
+                document.getElementById('login-view').style.display = 'block';
+                document.getElementById('dashboard-view').style.display = 'none';
+            }
+        }
+
+        async function loginAgent() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                const data = await res.json();
+                if(data.token && (data.user.role === 'AGENT' || data.user.role === 'ADMIN')) {
+                    localStorage.setItem('aria_token', data.token);
+                    localStorage.setItem('aria_role', data.user.role);
+                    checkAuth();
+                } else {
+                    document.getElementById('login-error').innerText = data.error || 'Credenciales inválidas para Agente.';
+                    document.getElementById('login-error').style.display = 'block';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function logout() {
+            localStorage.removeItem('aria_token');
+            localStorage.removeItem('aria_role');
+            checkAuth();
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>
