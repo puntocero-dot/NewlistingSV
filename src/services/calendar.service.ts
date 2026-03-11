@@ -57,7 +57,7 @@ export class CalendarService {
 
     const event = {
       summary: summary,
-      description: \`Cita agendada por ARIA AI para \${clientEmail}\`,
+      description: `Cita agendada por ARIA AI para ${clientEmail}`,
       start: {
         dateTime: startTime,
         timeZone: 'America/El_Salvador',

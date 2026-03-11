@@ -35,11 +35,11 @@ export class EmbeddingService {
     const embedding = await this.generateEmbedding(textToEmbed);
     
     // We must use raw SQL to update the pgvector column
-    await prisma.$executeRaw\`
+    await prisma.$executeRaw`
         UPDATE "Property" 
-        SET "embedding" = \${embedding}::vector 
-        WHERE id = \${propertyId}
-    \`;
+        SET "embedding" = ${embedding}::vector 
+        WHERE id = ${propertyId}
+    `;
     return true;
   }
 
@@ -47,14 +47,14 @@ export class EmbeddingService {
     const queryEmbedding = await this.generateEmbedding(queryText);
     
     // Perform cosine similarity search using pgvector '<=>' operator
-    const results = await prisma.$queryRaw\`
+    const results = await prisma.$queryRaw`
         SELECT id, title, zone, price, mode, category, images,
-               1 - ("embedding" <=> \${queryEmbedding}::vector) as similarity
+               1 - ("embedding" <=> ${queryEmbedding}::vector) as similarity
         FROM "Property"
         WHERE "embedding" IS NOT NULL
-        ORDER BY "embedding" <=> \${queryEmbedding}::vector
-        LIMIT \${limit}
-    \`;
+        ORDER BY "embedding" <=> ${queryEmbedding}::vector
+        LIMIT ${limit}
+    `;
     
     return results;
   }
