@@ -117,10 +117,15 @@ async function sendMessage() {
         });
         
         const data = await response.json();
+        
+        if (!response.ok || !data.response) {
+            throw new Error(data.error || 'Respuesta inválida del servidor');
+        }
+        
         appendMessage('model', data.response);
     } catch (error) {
-        console.error('Error:', error);
-        appendMessage('model', 'Lo siento, tuve un problema al procesar tu solicitud.');
+        console.error('Error fetching chat:', error);
+        appendMessage('model', 'Lo siento, tuve un problema al procesar tu solicitud. Por favor intenta de nuevo.');
     }
 }
 

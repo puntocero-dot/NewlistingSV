@@ -3,29 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARIA — Real Estate AI Ecosystem</title>
+    <title>New Listing SV | Quiet Luxury Real Estate</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="glass-bg"></div>
+    <div class="fixed-bg"></div>
     
-    <nav>
-        <div class="logo">ARIA <span>v2.0</span></div>
+    <nav class="luxury-nav">
+        <div class="logo">
+            <span class="logo-text">NEW LISTING</span>
+            <span class="logo-sub">EL SALVADOR</span>
+        </div>
         <div class="nav-links">
-            <a href="/client.html">Portal Cliente</a>
-            <a href="/agent.html">Acceso Agentes</a>
-            <a href="#inventory">Propiedades</a>
+            <a href="#inventory">Colección</a>
+            <a href="/client.html">Portal Privado</a>
+            <a href="/agent.html">Agentes</a>
         </div>
     </nav>
 
     <main>
-        <section class="hero">
-            <h1>Arquitectura de <br><span class="gradient-text">Experiencias de Lujo</span></h1>
-            <p>ARIA es el ecosistema de inteligencia real estate que orquesta el futuro de las inversiones inmobiliarias.</p>
-            <div class="cta-group">
-                <button class="btn-primary" onclick="openChat()">Hablar con ARIA</button>
-                <button class="btn-secondary">Ver Catálogo</button>
+        <section class="hero-luxury">
+            <div class="hero-content">
+                <p class="hero-kicker">Exclusividad & Elegancia</p>
+                <h1>Arquitectura de<br><i>Experiencias</i> de Lujo</h1>
+                <p class="hero-desc">Una curaduría de las propiedades más extraordinarias de El Salvador, gestionadas por inteligencia artificial de primer nivel.</p>
+                <div class="cta-group">
+                    <button class="btn-gold" onclick="openChat()">Consultar con ARIA</button>
+                    <a href="#inventory" class="btn-outline">Explorar Cartera</a>
+                </div>
+            </div>
+            <div class="hero-image-wrapper">
+                <div class="hero-abstract-shape"></div>
             </div>
         </section>
 
