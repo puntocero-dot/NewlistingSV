@@ -1,6 +1,6 @@
 :root {
-    --primary: #c5a059;
-    --primary-dark: #a68545;
+    --primary: #1F2E8A; /* Navy Blue from logo */
+    --primary-dark: #121A52;
     --bg-dark: #0a0b0d;
     --card-bg: rgba(255, 255, 255, 0.05);
     --text: #ffffff;
@@ -110,7 +110,7 @@ p {
 
 .btn-primary {
     background: var(--primary);
-    color: var(--bg-dark);
+    color: #ffffff;
     border: none;
     padding: 1rem 2rem;
     font-size: 1rem;
@@ -216,7 +216,7 @@ p {
 
 .prop-tag {
     background: var(--primary);
-    color: var(--bg-dark);
+    color: #ffffff;
     font-size: 0.7rem;
     font-weight: 700;
     padding: 2px 8px;
