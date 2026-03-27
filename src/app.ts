@@ -33,6 +33,10 @@ const buildApp = (): FastifyInstance => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 
+  app.get('/api/health', async () => {
+    return { status: 'ok', timestamp: new Date().toISOString() };
+  });
+
   // Routes
   app.register(authRoutes, { prefix: '/api/auth' });
   app.register(propertyRoutes, { prefix: '/api/properties' });

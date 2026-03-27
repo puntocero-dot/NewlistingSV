@@ -30,7 +30,7 @@ export class AIService {
     const apiKey = process.env.GOOGLE_AI_API_KEY || '';
     if (apiKey && apiKey !== 'YOUR_GEMINI_API_KEY') {
         this.model = genAI.getGenerativeModel({ 
-          model: 'gemini-1.5-flash',
+          model: 'gemini-2.5-flash',
           systemInstruction: this.persona 
         });
     } else {
