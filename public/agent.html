@@ -58,6 +58,13 @@
     .empty-state .icon { font-size:2.5rem; margin-bottom:1rem; }
     .loading-txt { color:var(--text-muted); text-align:center; padding:2rem; font-size:.9rem; }
 
+    /* Leads list */
+    .lead-item { background:rgba(201,169,110,.05); border:1px solid rgba(201,169,110,.15); border-left:4px solid var(--primary); border-radius:10px; padding:1.2rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+    .lead-info h4 { font-family:'Inter',sans-serif; margin-bottom:.3rem; color:#fff; font-size:1rem; }
+    .lead-meta { font-size:.85rem; color:var(--text-muted); }
+    .lead-date { font-size:.75rem; color:var(--text-muted); }
+    .lead-chip { font-size:.7rem; padding:.2rem .5rem; background:#333; border-radius:4px; margin-right:.5rem; }
+
     .btn-logout { background:transparent; border:1px solid rgba(255,107,107,.3); color:#ff6b6b; border-radius:8px; padding:.5rem 1rem; font-size:.82rem; cursor:pointer; font-family:Inter,sans-serif; transition:all .2s; }
     .btn-logout:hover { background:rgba(255,107,107,.1); }
 
@@ -132,8 +139,14 @@
       </a>
     </div>
 
+    <!-- Leads -->
+    <div class="section-label" style="margin-top: 3rem;">🔥 Leads Capturados (ARIA)</div>
+    <div id="leads-container">
+      <div class="loading-txt">Cargando leads…</div>
+    </div>
+
     <!-- Properties -->
-    <div class="section-label">Catálogo Activo</div>
+    <div class="section-label" style="margin-top: 3rem;">Catálogo Activo</div>
     <div id="prop-list-container">
       <div class="loading-txt">Cargando propiedades…</div>
     </div>
@@ -181,6 +194,42 @@
       document.getElementById('dashboard-view').style.display = 'block';
       document.getElementById('agent-email-label').innerText = user ? user.email : localStorage.getItem('aria_email') || '';
       loadProperties();
+      loadLeads();
+    }
+
+    async function loadLeads() {
+      try {
+        const token = localStorage.getItem('aria_token');
+        const res = await fetch('/api/leads', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) throw new Error('Failed to load');
+        const leads = await res.json();
+        
+        const container = document.getElementById('leads-container');
+        if (!leads.length) {
+          container.innerHTML = '<div class="empty-state"><p>Aún no hay clientes potenciales capturados por ARIA.</p></div>';
+          return;
+        }
+
+        container.innerHTML = leads.map(l => {
+          const date = new Date(l.createdAt).toLocaleDateString('es-ES', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+          return `
+            <div class="lead-item">
+              <div class="lead-info">
+                <h4>${l.name || 'Prospecto Web'}</h4>
+                <div class="lead-meta">
+                  ${l.email ? `<span class="lead-chip">✉ ${l.email}</span>` : ''}
+                  ${l.phone ? `<span class="lead-chip">📞 ${l.phone}</span>` : ''}
+                </div>
+              </div>
+              <div class="lead-date">${date}</div>
+            </div>
+          `;
+        }).join('');
+      } catch(e) {
+        document.getElementById('leads-container').innerHTML = '<div class="loading-txt">Error cargando leads. Revisa tu token o conexión.</div>';
+      }
     }
 
     async function loadProperties() {

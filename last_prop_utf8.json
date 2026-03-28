@@ -1,0 +1,31 @@
+{
+  "id": "ab624f32-829f-42bf-bad7-af7f09db54f6",
+  "title": "San Jacinto",
+  "description": "Casa de 1 cuarto",
+  "price": 400,
+  "currency": "USD",
+  "mode": "Venta",
+  "category": "Residencial",
+  "zone": "San Salvadr",
+  "surface": 0,
+  "features": [],
+  "images": [
+    "https://res.cloudinary.com/dg6pg9ntg/image/upload/v1774678603/newlisting-sv/properties/jd084ni0snisf6wm4kry.jpg"
+  ],
+  "roomPhotos": [
+    {
+      "url": "https://res.cloudinary.com/dg6pg9ntg/image/upload/v1774678603/newlisting-sv/properties/jd084ni0snisf6wm4kry.jpg",
+      "label": "🛏 Cuarto Principal",
+      "roomType": "bedroom_main"
+    }
+  ],
+  "bedrooms": 1,
+  "bathrooms": null,
+  "livingRooms": null,
+  "address": "Col. El Carmen, Pasaje Loma Linda",
+  "latitude": 13.6927,
+  "longitude": -89.1917,
+  "agentId": null,
+  "createdAt": "2026-03-28T06:16:43.299Z",
+  "updatedAt": "2026-03-28T06:16:43.299Z"
+}

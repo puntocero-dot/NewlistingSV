@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { aiService } from '../services/ai.service';
+import { emailService } from '../services/email.service';
 import { prisma } from '../models';
 
 export async function conversationRoutes(app: FastifyInstance) {
@@ -20,20 +21,38 @@ export async function conversationRoutes(app: FastifyInstance) {
       if (emailMatch || phoneMatch) {
         const leadEmail = emailMatch ? emailMatch[1] : null;
         const leadPhone = phoneMatch ? phoneMatch[1] : null;
+        let isNewLeadForEmail = false;
         
         try {
+          // Get the very first agent from DB to assign this lead to
+          const defaultAgent = await prisma.agent.findFirst();
+
           if (leadEmail) {
             const existing = await prisma.lead.findFirst({ where: { email: leadEmail } });
             if (existing) {
-              if (leadPhone) await prisma.lead.update({ where: { id: existing.id }, data: { phone: leadPhone } });
+              if (leadPhone && !existing.phone) {
+                await prisma.lead.update({ where: { id: existing.id }, data: { phone: leadPhone } });
+                // If they add a phone later, notify agent again
+                if (defaultAgent) emailService.sendAgentNotification(defaultAgent.email, { email: leadEmail, phone: leadPhone });
+              }
             } else {
-              await prisma.lead.create({ data: { email: leadEmail, phone: leadPhone, name: 'Lead from ARIA Chat' } });
+              await prisma.lead.create({ data: { email: leadEmail, phone: leadPhone, name: 'Lead from ARIA Chat', agentId: defaultAgent?.id } });
+              isNewLeadForEmail = true;
             }
           } else if (leadPhone) {
              const existing = await prisma.lead.findFirst({ where: { phone: leadPhone } });
              if (!existing) {
-               await prisma.lead.create({ data: { phone: leadPhone, name: 'Lead from ARIA Chat' } });
+               await prisma.lead.create({ data: { phone: leadPhone, name: 'Lead from ARIA Chat', agentId: defaultAgent?.id } });
+               if (defaultAgent) emailService.sendAgentNotification(defaultAgent.email, { phone: leadPhone });
              }
+          }
+
+          // Trigger Emails for completely new email leads
+          if (isNewLeadForEmail && leadEmail) {
+            emailService.sendClientConfirmation(leadEmail);
+            if (defaultAgent) {
+              emailService.sendAgentNotification(defaultAgent.email, { email: leadEmail, phone: leadPhone || '' });
+            }
           }
         } catch (dbErr) {
           app.log.warn('Could not save lead: ' + dbErr);

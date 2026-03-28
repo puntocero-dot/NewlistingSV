@@ -65,6 +65,7 @@ model Agent {
   zone       String?
   calendar   String?    // Google Calendar ID
   properties Property[]
+  leads      Lead[]
   createdAt  DateTime   @default(now())
 }
 
@@ -72,6 +73,8 @@ model Lead {
   id          String         @id @default(uuid())
   userId      String?        @unique
   user        User?          @relation(fields: [userId], references: [id])
+  agentId     String?
+  agent       Agent?         @relation(fields: [agentId], references: [id])
   name        String?
   phone       String?
   email       String?
