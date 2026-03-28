@@ -53,9 +53,9 @@ export async function conversationRoutes(app: FastifyInstance) {
                   email: leadEmail, 
                   phone: leadPhone, 
                   name: 'Lead from ARIA Chat', 
-                  agent: defaultAgent ? { connect: { id: defaultAgent.id } } : undefined,
+                  agentId: defaultAgent?.id,
                   preferences: visitDate ? { last_visit_request: visitDate } : {}
-                } 
+                } as any
               });
               isNewLeadForEmail = true;
             }
@@ -68,9 +68,9 @@ export async function conversationRoutes(app: FastifyInstance) {
                  data: { 
                    phone: leadPhone, 
                    name: 'Lead from ARIA Chat', 
-                   agent: defaultAgent ? { connect: { id: defaultAgent.id } } : undefined,
+                   agentId: defaultAgent?.id,
                    preferences: visitDate ? { last_visit_request: visitDate } : {}
-                 } 
+                 } as any
                });
              }
           } else if (visitDate) {

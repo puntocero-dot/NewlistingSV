@@ -35,7 +35,7 @@ export async function leadsRoutes(app: FastifyInstance) {
           status: status || undefined,
           appointmentDate: appointmentDate ? new Date(appointmentDate) : undefined,
           notes: notes !== undefined ? notes : undefined
-        }
+        } as any
       });
 
       return updated;
