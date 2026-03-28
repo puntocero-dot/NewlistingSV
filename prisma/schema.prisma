@@ -17,6 +17,15 @@ enum Role {
   CLIENT
 }
 
+enum LeadStatus {
+  PENDING
+  CONTACTED
+  SCHEDULED
+  WON
+  LOST
+  FUTURE
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -70,19 +79,22 @@ model Agent {
 }
 
 model Lead {
-  id          String         @id @default(uuid())
-  userId      String?        @unique
-  user        User?          @relation(fields: [userId], references: [id])
-  agentId     String?
-  agent       Agent?         @relation(fields: [agentId], references: [id])
-  name        String?
-  phone       String?
-  email       String?
-  budget      Float?
-  preferences Json?
-  qualified   Boolean        @default(false)
-  conversations Conversation[]
-  createdAt   DateTime       @default(now())
+  id              String         @id @default(uuid())
+  userId          String?        @unique
+  user            User?          @relation(fields: [userId], references: [id])
+  agentId         String?
+  agent           Agent?         @relation(fields: [agentId], references: [id])
+  name            String?
+  phone           String?
+  email           String?
+  budget          Float?
+  preferences     Json?
+  status          LeadStatus     @default(PENDING)
+  appointmentDate DateTime?
+  notes           String?
+  qualified       Boolean        @default(false)
+  conversations   Conversation[]
+  createdAt       DateTime       @default(now())
 }
 
 model Conversation {

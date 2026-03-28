@@ -18,4 +18,30 @@ export async function leadsRoutes(app: FastifyInstance) {
       return reply.status(500).send({ error: 'Failed to fetch leads' });
     }
   });
+
+  // Actualizar estado o datos de un lead
+  app.patch('/:id', { preHandler: [app.requireAgent] }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const { status, appointmentDate, notes } = request.body as { 
+        status?: any, 
+        appointmentDate?: string, 
+        notes?: string 
+      };
+
+      const updated = await prisma.lead.update({
+        where: { id },
+        data: {
+          status: status || undefined,
+          appointmentDate: appointmentDate ? new Date(appointmentDate) : undefined,
+          notes: notes !== undefined ? notes : undefined
+        }
+      });
+
+      return updated;
+    } catch (error) {
+      app.log.error(error);
+      return reply.status(500).send({ error: 'Failed to update lead' });
+    }
+  });
 }
