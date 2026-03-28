@@ -5,4 +5,5 @@ dist
 .prisma
 dev.db
 seed.js
+seed-users.js
 test-*.js

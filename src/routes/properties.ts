@@ -14,7 +14,10 @@ export async function propertyRoutes(app: FastifyInstance) {
     return property;
   });
 
-  app.post('/', async (request, reply) => {
+  // Protected: only AGENT or ADMIN can create properties
+  app.post('/', {
+    preValidation: [app.requireAgent],
+  }, async (request, reply) => {
     try {
       const property = await propertyService.createProperty(request.body);
       return property;
@@ -23,4 +26,3 @@ export async function propertyRoutes(app: FastifyInstance) {
     }
   });
 }
-

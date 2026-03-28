@@ -42,22 +42,30 @@ model Property {
   surface     Float
   features    String[]
   images      String[]
+  roomPhotos  Json?    // [{ url, roomType, label }]
+  bedrooms    Int?
+  bathrooms   Int?
+  livingRooms Int?
+  address     String?
   latitude    Float?
   longitude   Float?
+  agentId     String?
+  agent       Agent?   @relation(fields: [agentId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Agent {
-  id        String   @id @default(uuid())
-  userId    String?  @unique
-  user      User?    @relation(fields: [userId], references: [id])
-  name      String
-  email     String   @unique
-  phone     String?
-  zone      String?
-  calendar  String?  // Google Calendar ID
-  createdAt DateTime @default(now())
+  id         String     @id @default(uuid())
+  userId     String?    @unique
+  user       User?      @relation(fields: [userId], references: [id])
+  name       String
+  email      String     @unique
+  phone      String?
+  zone       String?
+  calendar   String?    // Google Calendar ID
+  properties Property[]
+  createdAt  DateTime   @default(now())
 }
 
 model Lead {

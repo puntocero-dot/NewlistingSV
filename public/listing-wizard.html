@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARIA — Publicar Propiedad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #C9A96E;
+      --gold-light: #E8D5A3;
+      --dark: #0A0A0A;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text: #E8E8E8;
+      --muted: #888;
+      --success: #4CAF50;
+      --error: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--text); min-height: 100vh; }
+
+    /* Animated background */
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(ellipse at 20% 20%, rgba(201,169,110,0.06) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, rgba(201,169,110,0.04) 0%, transparent 60%);
+    }
+
+    /* Nav */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2rem; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px);
+      background: rgba(10,10,10,0.9);
+    }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--gold); letter-spacing: 0.15em; }
+    .nav-logo span { font-size: 0.7rem; display: block; color: var(--muted); font-family: 'Inter', sans-serif; letter-spacing: 0.2em; }
+    .nav-back { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+    .nav-back:hover { color: var(--gold); }
+
+    /* Auth gate */
+    #auth-gate {
+      display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 65px);
+    }
+    .auth-box {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 2.5rem; width: 100%; max-width: 420px; backdrop-filter: blur(20px);
+    }
+    .auth-box h2 { font-family: 'Playfair Display', serif; color: var(--gold); margin-bottom: 0.5rem; }
+    .auth-box p { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+    .form-field { margin-bottom: 1.2rem; }
+    .form-field label { display: block; font-size: 0.75rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .form-field input {
+      width: 100%; padding: 0.85rem 1rem; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+      font-size: 0.95rem; font-family: 'Inter', sans-serif; transition: border-color 0.2s;
+    }
+    .form-field input:focus { outline: none; border-color: var(--gold); }
+
+    /* Buttons */
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold), #a8824a); color: #0A0A0A;
+      border: none; padding: 0.9rem 2rem; border-radius: 8px; font-weight: 600;
+      font-size: 0.9rem; cursor: pointer; transition: all 0.2s; width: 100%;
+      font-family: 'Inter', sans-serif; letter-spacing: 0.05em;
+    }
+    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(201,169,110,0.3); }
+    .btn-gold:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-outline {
+      background: transparent; color: var(--gold); border: 1px solid var(--gold);
+      padding: 0.9rem 2rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .btn-outline:hover { background: rgba(201,169,110,0.1); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border);
+      padding: 0.9rem 2rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+    .error-msg { color: var(--error); font-size: 0.82rem; margin-top: 0.75rem; text-align: center; }
+
+    /* Wizard layout */
+    #wizard { display: none; max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* Progress bar */
+    .progress-bar {
+      display: flex; align-items: center; margin-bottom: 3rem; gap: 0;
+    }
+    .step-indicator {
+      display: flex; align-items: center; flex: 1;
+    }
+    .step-circle {
+      width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 600; border: 2px solid var(--border);
+      color: var(--muted); background: var(--dark); transition: all 0.3s; flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .step-circle.active { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 20px rgba(201,169,110,0.3); }
+    .step-circle.done { border-color: var(--success); background: var(--success); color: white; }
+    .step-label { font-size: 0.72rem; color: var(--muted); margin-left: 0.6rem; white-space: nowrap; }
+    .step-label.active { color: var(--gold); }
+    .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 0.75rem; }
+    .step-line.done { background: var(--gold); }
+
+    /* Wizard steps */
+    .wizard-step { display: none; animation: fadeIn 0.3s ease; }
+    .wizard-step.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .step-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--gold); margin-bottom: 0.4rem; }
+    .step-subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+
+    /* Photo upload area */
+    .photo-upload-zone {
+      border: 2px dashed rgba(201,169,110,0.3); border-radius: 12px; padding: 2.5rem;
+      text-align: center; cursor: pointer; transition: all 0.3s; position: relative;
+      background: rgba(201,169,110,0.02);
+    }
+    .photo-upload-zone:hover { border-color: var(--gold); background: rgba(201,169,110,0.05); }
+    .photo-upload-zone .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .photo-upload-zone h3 { font-size: 1rem; color: var(--text); margin-bottom: 0.4rem; }
+    .photo-upload-zone p { font-size: 0.8rem; color: var(--muted); }
+    #photo-file-input { display: none; }
+
+    /* Photo staging */
+    #photo-staging { display: none; margin-top: 1.5rem; }
+    .staging-photo {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; margin-bottom: 1.5rem; animation: fadeIn 0.3s ease;
+    }
+    .staging-photo img { width: 100%; max-height: 260px; object-fit: cover; }
+    .staging-tag-area { padding: 1.25rem; }
+    .staging-tag-area h4 { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.75rem; }
+    .room-types {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .room-tag {
+      padding: 0.4rem 0.85rem; border-radius: 20px; font-size: 0.78rem; cursor: pointer;
+      border: 1px solid var(--border); color: var(--muted); transition: all 0.2s; background: transparent;
+      font-family: 'Inter', sans-serif;
+    }
+    .room-tag:hover { border-color: var(--gold); color: var(--gold); }
+    .room-tag.selected { background: linear-gradient(135deg, var(--gold), #a8824a); color: #0A0A0A; border-color: transparent; font-weight: 600; }
+    .staging-actions { display: flex; justify-content: space-between; align-items: center; padding: 0 1.25rem 1.25rem; }
+    .staging-photo-label { font-size: 0.82rem; color: var(--gold); font-weight: 500; }
+
+    /* Photo thumbnails list */
+    #photos-list { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+    .photo-thumb {
+      position: relative; width: 100px; height: 80px; border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-thumb .thumb-tag {
+      position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7);
+      font-size: 0.65rem; padding: 0.2rem 0.4rem; color: var(--gold-light); text-align: center;
+    }
+    .photo-thumb .thumb-del {
+      position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.7); border: none;
+      color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.7rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Room counter chips */
+    .room-counters { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .counter-chip {
+      background: rgba(201,169,110,0.08); border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 10px; padding: 0.75rem 1.2rem; text-align: center; min-width: 90px;
+    }
+    .counter-chip .num { font-size: 1.5rem; font-weight: 700; color: var(--gold); line-height: 1; }
+    .counter-chip .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* Map/GPS area */
+    .gps-box {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+    }
+    .gps-row { display: flex; gap: 0.75rem; align-items: center; }
+    .gps-row input { flex: 1; }
+    .gps-coords { margin-top: 0.75rem; font-size: 0.8rem; color: var(--gold); display: none; }
+
+    /* Form grid */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-grid .full { grid-column: 1 / -1; }
+    select {
+      width: 100%; padding: 0.85rem 1rem; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+      font-size: 0.95rem; font-family: 'Inter', sans-serif; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 1rem center;
+    }
+    select:focus { outline: none; border-color: var(--gold); }
+    select option { background: #1a1a1a; }
+    textarea {
+      width: 100%; padding: 0.85rem 1rem; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+      font-size: 0.95rem; font-family: 'Inter', sans-serif; resize: vertical; min-height: 100px;
+    }
+    textarea:focus { outline: none; border-color: var(--gold); }
+
+    /* Summary card */
+    .summary-section { margin-bottom: 2rem; }
+    .summary-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+    .summary-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.5rem 0; }
+    .summary-row .key { color: var(--muted); font-size: 0.88rem; }
+    .summary-row .val { color: var(--text); font-size: 0.88rem; font-weight: 500; text-align: right; max-width: 60%; }
+    .summary-photos { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+    .summary-photos img { width: 72px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+
+    /* Wizard navigation */
+    .wizard-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 2.5rem; gap: 1rem; }
+    .wizard-nav .left { display: flex; align-items: center; gap: 0.75rem; }
+
+    /* Success screen */
+    .success-screen { text-align: center; padding: 4rem 2rem; }
+    .success-icon { font-size: 4rem; margin-bottom: 1.5rem; }
+    .success-screen h2 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); margin-bottom: 1rem; }
+    .success-screen p { color: var(--muted); max-width: 400px; margin: 0 auto 2rem; line-height: 1.6; }
+
+    /* Loading spinner */
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 0.5rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .add-photo-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(201,169,110,0.08); border: 1px dashed rgba(201,169,110,0.4);
+      color: var(--gold); border-radius: 8px; padding: 0.6rem 1.2rem; cursor: pointer;
+      font-size: 0.85rem; font-family: 'Inter', sans-serif; transition: all 0.2s; margin-top: 1rem;
+    }
+    .add-photo-btn:hover { background: rgba(201,169,110,0.12); }
+
+    .tip { background: rgba(201,169,110,0.06); border-left: 3px solid var(--gold); padding: 0.75rem 1rem; border-radius: 4px; font-size: 0.82rem; color: var(--muted); margin-bottom: 1.5rem; }
+    .tip strong { color: var(--gold-light); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-logo">NEW LISTING <span>AGENT PORTAL</span></div>
+    <a href="/agent.html" class="nav-back">← Volver al Portal</a>
+  </nav>
+
+  <!-- AUTH GATE -->
+  <div id="auth-gate">
+    <div class="auth-box">
+      <h2>Acceso de Agente</h2>
+      <p>Inicia sesión para publicar una propiedad en el catálogo ARIA.</p>
+      <div class="form-field">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="agente@aria.com" autocomplete="email">
+      </div>
+      <div class="form-field">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-gold" onclick="doLogin()">Acceder al Wizard</button>
+      <p class="error-msg" id="login-err" style="display:none"></p>
+    </div>
+  </div>
+
+  <!-- WIZARD -->
+  <div id="wizard">
+
+    <!-- Progress -->
+    <div class="progress-bar" id="progress-bar">
+      <div class="step-indicator">
+        <div class="step-circle active" id="sc-1">1</div>
+        <span class="step-label active" id="sl-1">Fotos</span>
+      </div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-indicator">
+        <div class="step-circle" id="sc-2">2</div>
+        <span class="step-label" id="sl-2">Ubicación</span>
+      </div>
+      <div class="step-line" id="line-2"></div>
+      <div class="step-indicator">
+        <div class="step-circle" id="sc-3">3</div>
+        <span class="step-label" id="sl-3">Detalles</span>
+      </div>
+      <div class="step-line" id="line-3"></div>
+      <div class="step-indicator">
+        <div class="step-circle" id="sc-4">4</div>
+        <span class="step-label" id="sl-4">Publicar</span>
+      </div>
+    </div>
+
+    <!-- STEP 1: PHOTOS -->
+    <div class="wizard-step active" id="step-1">
+      <h1 class="step-title">Fotos de la Propiedad</h1>
+      <p class="step-subtitle">Sube cada foto y etiqueta qué habitación es. ARIA contará los cuartos, baños y salas automáticamente.</p>
+
+      <div class="tip">
+        <strong>💡 Tip:</strong> Sube una foto a la vez. Después de cada foto, selecciona qué habitación muestra. Puedes subir todas las fotos que necesites.
+      </div>
+
+      <!-- Upload zone -->
+      <div class="photo-upload-zone" id="drop-zone" onclick="document.getElementById('photo-file-input').click()">
+        <div class="icon">📸</div>
+        <h3>Toca para subir foto</h3>
+        <p>Desde tu cámara o galería • JPG, PNG, HEIC</p>
+        <input type="file" id="photo-file-input" accept="image/*" capture="environment" multiple>
+      </div>
+
+      <!-- Staging: shows current photo being tagged -->
+      <div id="photo-staging">
+        <div class="staging-photo" id="staging-card">
+          <img id="staging-img" src="" alt="preview">
+          <div class="staging-tag-area">
+            <h4>¿Qué habitación muestra esta foto?</h4>
+            <div class="room-types" id="room-type-grid">
+              <!-- injected by JS -->
+            </div>
+          </div>
+          <div class="staging-actions">
+            <span class="staging-photo-label" id="staging-label">Sin etiquetar</span>
+            <div style="display:flex; gap:0.5rem">
+              <button class="btn-secondary" style="padding:0.5rem 1rem; font-size:0.82rem" onclick="skipPhoto()">Omitir</button>
+              <button class="btn-gold" id="confirm-tag-btn" style="padding:0.5rem 1.2rem; font-size:0.82rem" onclick="confirmTag()" disabled>Confirmar ✓</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Added photos list -->
+      <div id="photos-list"></div>
+      <div id="photos-empty" style="color:var(--muted); font-size:0.85rem; margin-top:1rem; display:none">Todavía no has subido fotos.</div>
+
+      <!-- Room count chips -->
+      <div class="room-counters" id="room-counters" style="display:none">
+        <div class="counter-chip"><div class="num" id="cnt-bedrooms">0</div><div class="lbl">Cuartos</div></div>
+        <div class="counter-chip"><div class="num" id="cnt-bathrooms">0</div><div class="lbl">Baños</div></div>
+        <div class="counter-chip"><div class="num" id="cnt-living">0</div><div class="lbl">Salas</div></div>
+        <div class="counter-chip"><div class="num" id="cnt-photos">0</div><div class="lbl">Fotos</div></div>
+      </div>
+
+      <button class="add-photo-btn" onclick="document.getElementById('photo-file-input').click()" id="add-more-btn" style="display:none">
+        + Agregar más fotos
+      </button>
+
+      <div class="wizard-nav">
+        <div class="left"></div>
+        <button class="btn-gold" onclick="goStep(2)" id="step1-next" style="width:auto; min-width:140px">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: LOCATION -->
+    <div class="wizard-step" id="step-2">
+      <h1 class="step-title">Ubicación Exacta</h1>
+      <p class="step-subtitle">Ingresa la dirección completa y usa el GPS para obtener coordenadas precisas.</p>
+
+      <div class="gps-box">
+        <div class="form-field" style="margin-bottom:1rem">
+          <label>Dirección completa</label>
+          <input type="text" id="address-input" placeholder="Ej: Col. Escalón, 89 Av. Norte #123, San Salvador">
+        </div>
+        <div class="gps-row">
+          <input type="text" id="zone-from-gps" placeholder="Zona / Municipio" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:8px; padding:0.7rem 1rem; color:var(--text); font-family:Inter,sans-serif; font-size:0.9rem;">
+          <button class="btn-outline" style="width:auto; white-space:nowrap; padding:0.7rem 1.2rem; font-size:0.82rem" onclick="getGPS()">
+            📍 Usar GPS
+          </button>
+        </div>
+        <div class="gps-coords" id="gps-coords"></div>
+      </div>
+
+      <div class="tip">
+        <strong>📍 GPS:</strong> El botón "Usar GPS" capturará tus coordenadas actuales. Asegúrate de estar físicamente en la propiedad o cerca para mayor precisión.
+      </div>
+
+      <div class="wizard-nav">
+        <div class="left"><button class="btn-secondary" style="width:auto" onclick="goStep(1)">← Atrás</button></div>
+        <button class="btn-gold" onclick="goStep(3)" style="width:auto; min-width:140px">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: DETAILS -->
+    <div class="wizard-step" id="step-3">
+      <h1 class="step-title">Detalles de la Propiedad</h1>
+      <p class="step-subtitle">Completa la información para que ARIA pueda presentarla correctamente a los clientes.</p>
+
+      <div class="form-grid">
+        <div class="form-field full">
+          <label>Título de la propiedad *</label>
+          <input type="text" id="prop-title" placeholder="Ej: Villa Marítima con Vista al Mar">
+        </div>
+        <div class="form-field full">
+          <label>Descripción *</label>
+          <textarea id="prop-desc" placeholder="Describe los puntos más destacados de la propiedad…"></textarea>
+        </div>
+        <div class="form-field">
+          <label>Precio *</label>
+          <input type="number" id="prop-price" placeholder="850000" min="0">
+        </div>
+        <div class="form-field">
+          <label>Moneda</label>
+          <select id="prop-currency">
+            <option value="USD">USD — Dólar</option>
+            <option value="EUR">EUR — Euro</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Modo *</label>
+          <select id="prop-mode">
+            <option value="Venta">Venta</option>
+            <option value="Alquiler">Alquiler</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Categoría *</label>
+          <select id="prop-category">
+            <option value="Playa">Playa</option>
+            <option value="Residencial">Residencial</option>
+            <option value="Oficinas">Oficinas</option>
+            <option value="Terreno">Terreno</option>
+            <option value="Comercial">Comercial</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Zona / Municipio *</label>
+          <input type="text" id="prop-zone" placeholder="San Salvador, La Libertad…">
+        </div>
+        <div class="form-field">
+          <label>Superficie (m²) *</label>
+          <input type="number" id="prop-surface" placeholder="250" min="1">
+        </div>
+        <div class="form-field full">
+          <label>Características destacadas (separadas por coma)</label>
+          <input type="text" id="prop-features" placeholder="Piscina, Vista al Mar, Seguridad 24/7, Gimnasio">
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <div class="left"><button class="btn-secondary" style="width:auto" onclick="goStep(2)">← Atrás</button></div>
+        <button class="btn-gold" onclick="goStep(4)" style="width:auto; min-width:160px">Revisar y Publicar →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: SUMMARY + PUBLISH -->
+    <div class="wizard-step" id="step-4">
+      <h1 class="step-title">Revisar y Publicar</h1>
+      <p class="step-subtitle">Confirma que toda la información es correcta antes de publicar en el catálogo ARIA.</p>
+
+      <div id="summary-content">
+        <!-- Filled by buildSummary() -->
+      </div>
+
+      <div class="wizard-nav">
+        <div class="left"><button class="btn-secondary" style="width:auto" onclick="goStep(3)">← Editar</button></div>
+        <button class="btn-gold" id="publish-btn" onclick="publishProperty()" style="width:auto; min-width:180px">
+          🚀 Publicar Propiedad
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="wizard-step" id="step-success">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <h2>¡Propiedad Publicada!</h2>
+        <p>La propiedad ha sido añadida al catálogo ARIA. Los clientes ya pueden encontrarla y ARIA puede mencionarla en sus conversaciones.</p>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap">
+          <button class="btn-gold" onclick="location.href='/'" style="width:auto">Ver Catálogo</button>
+          <button class="btn-outline" onclick="resetWizard()" style="width:auto">Publicar Otra</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────
+    //  State
+    // ─────────────────────────────────────────────
+    const ROOM_TYPES = [
+      { key: 'bedroom_main',  label: '🛏 Cuarto Principal',  group: 'bedroom' },
+      { key: 'bedroom_2',     label: '🛏 Cuarto 2',          group: 'bedroom' },
+      { key: 'bedroom_3',     label: '🛏 Cuarto 3',          group: 'bedroom' },
+      { key: 'bedroom_4',     label: '🛏 Cuarto 4',          group: 'bedroom' },
+      { key: 'bathroom_main', label: '🚿 Baño Principal',    group: 'bathroom' },
+      { key: 'bathroom_2',    label: '🚿 Baño Visitas',      group: 'bathroom' },
+      { key: 'bathroom_3',    label: '🚿 Baño 3',            group: 'bathroom' },
+      { key: 'living_main',   label: '🛋 Sala Principal',    group: 'living' },
+      { key: 'living_dining', label: '🛋 Sala-Comedor',      group: 'living' },
+      { key: 'kitchen',       label: '🍳 Cocina',            group: 'other' },
+      { key: 'garage',        label: '🚗 Garage',            group: 'other' },
+      { key: 'pool',          label: '🏊 Piscina',           group: 'other' },
+      { key: 'garden',        label: '🌿 Jardín',            group: 'other' },
+      { key: 'terrace',       label: '☀️ Terraza',           group: 'other' },
+      { key: 'view',          label: '🌅 Vista Exterior',    group: 'other' },
+      { key: 'facade',        label: '🏠 Fachada',           group: 'other' },
+      { key: 'other',         label: '📷 Otra',              group: 'other' },
+    ];
+
+    let state = {
+      token: '',
+      photos: [],          // { dataUrl, file, roomKey, roomLabel, cloudUrl }
+      stagingQueue: [],    // files pending tagging
+      stagingIndex: 0,
+      gpsLat: null,
+      gpsLng: null,
+    };
+
+    // ─────────────────────────────────────────────
+    //  Auth
+    // ─────────────────────────────────────────────
+    function checkAuth() {
+      const token = localStorage.getItem('aria_token');
+      const role = localStorage.getItem('aria_role');
+      if (token && (role === 'AGENT' || role === 'ADMIN')) {
+        state.token = token;
+        document.getElementById('auth-gate').style.display = 'none';
+        document.getElementById('wizard').style.display = 'block';
+        initWizard();
+      }
+    }
+
+    async function doLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const errEl = document.getElementById('login-err');
+      errEl.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass }),
+        });
+        const data = await res.json();
+        if (data.token && (data.user.role === 'AGENT' || data.user.role === 'ADMIN')) {
+          localStorage.setItem('aria_token', data.token);
+          localStorage.setItem('aria_role', data.user.role);
+          state.token = data.token;
+          document.getElementById('auth-gate').style.display = 'none';
+          document.getElementById('wizard').style.display = 'block';
+          initWizard();
+        } else {
+          errEl.innerText = data.error || 'Credenciales inválidas. Solo agentes y admins pueden publicar.';
+          errEl.style.display = 'block';
+        }
+      } catch(e) {
+        errEl.innerText = 'Error de conexión. Intenta de nuevo.';
+        errEl.style.display = 'block';
+      }
+    }
+
+    // Enter key on login
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.getElementById('auth-gate').style.display !== 'none') doLogin();
+    });
+
+    // ─────────────────────────────────────────────
+    //  Wizard init
+    // ─────────────────────────────────────────────
+    function initWizard() {
+      buildRoomTypeGrid();
+      document.getElementById('photo-file-input').addEventListener('change', handleFileSelect);
+    }
+
+    // ─────────────────────────────────────────────
+    //  Step navigation
+    // ─────────────────────────────────────────────
+    let currentStep = 1;
+
+    function goStep(n) {
+      if (n === 4) buildSummary();
+
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      currentStep = n;
+      const targetId = n <= 4 ? `step-${n}` : 'step-success';
+      document.getElementById(targetId).classList.add('active');
+
+      // Update progress
+      for (let i = 1; i <= 4; i++) {
+        const sc = document.getElementById(`sc-${i}`);
+        const sl = document.getElementById(`sl-${i}`);
+        sc.classList.remove('active', 'done');
+        sl.classList.remove('active');
+        if (i < n) { sc.classList.add('done'); sc.innerHTML = '✓'; }
+        else if (i === n) { sc.classList.add('active'); sc.innerHTML = i; sl.classList.add('active'); }
+        else { sc.innerHTML = i; }
+        if (i < 4) {
+          document.getElementById(`line-${i}`).classList.toggle('done', i < n);
+        }
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ─────────────────────────────────────────────
+    //  Photo handling
+    // ─────────────────────────────────────────────
+    function buildRoomTypeGrid() {
+      const grid = document.getElementById('room-type-grid');
+      grid.innerHTML = ROOM_TYPES.map(rt => `
+        <button class="room-tag" data-key="${rt.key}" onclick="selectRoomType('${rt.key}', '${rt.label}')">${rt.label}</button>
+      `).join('');
+    }
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
+      state.stagingQueue = files;
+      state.stagingIndex = 0;
+      showStagingPhoto();
+      e.target.value = ''; // reset input
+    }
+
+    function showStagingPhoto() {
+      if (state.stagingIndex >= state.stagingQueue.length) {
+        document.getElementById('photo-staging').style.display = 'none';
+        return;
+      }
+      const file = state.stagingQueue[state.stagingIndex];
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('staging-img').src = e.target.result;
+        document.getElementById('photo-staging').style.display = 'block';
+        document.getElementById('staging-label').innerText = 'Sin etiquetar';
+        document.getElementById('confirm-tag-btn').disabled = true;
+        // reset room tags
+        document.querySelectorAll('.room-tag').forEach(b => b.classList.remove('selected'));
+        // store dataUrl on staging file
+        file._dataUrl = e.target.result;
+        file._roomKey = null;
+        file._roomLabel = null;
+        updateCounters();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function selectRoomType(key, label) {
+      document.querySelectorAll('.room-tag').forEach(b => b.classList.remove('selected'));
+      document.querySelector(`.room-tag[data-key="${key}"]`).classList.add('selected');
+      const file = state.stagingQueue[state.stagingIndex];
+      file._roomKey = key;
+      file._roomLabel = label;
+      document.getElementById('staging-label').innerText = label;
+      document.getElementById('confirm-tag-btn').disabled = false;
+    }
+
+    function confirmTag() {
+      const file = state.stagingQueue[state.stagingIndex];
+      state.photos.push({
+        dataUrl: file._dataUrl,
+        file: file,
+        roomKey: file._roomKey,
+        roomLabel: file._roomLabel,
+        cloudUrl: null,
+      });
+      state.stagingIndex++;
+      renderPhotosThumb();
+      updateCounters();
+
+      if (state.stagingIndex < state.stagingQueue.length) {
+        showStagingPhoto();
+      } else {
+        document.getElementById('photo-staging').style.display = 'none';
+        document.getElementById('add-more-btn').style.display = 'inline-flex';
+      }
+    }
+
+    function skipPhoto() {
+      const file = state.stagingQueue[state.stagingIndex];
+      file._roomKey = 'other';
+      file._roomLabel = '📷 Otra';
+      state.photos.push({
+        dataUrl: file._dataUrl,
+        file: file,
+        roomKey: 'other',
+        roomLabel: '📷 Otra',
+        cloudUrl: null,
+      });
+      state.stagingIndex++;
+      renderPhotosThumb();
+      updateCounters();
+
+      if (state.stagingIndex < state.stagingQueue.length) {
+        showStagingPhoto();
+      } else {
+        document.getElementById('photo-staging').style.display = 'none';
+        document.getElementById('add-more-btn').style.display = 'inline-flex';
+      }
+    }
+
+    function removePhoto(idx) {
+      state.photos.splice(idx, 1);
+      renderPhotosThumb();
+      updateCounters();
+    }
+
+    function renderPhotosThumb() {
+      const list = document.getElementById('photos-list');
+      if (!state.photos.length) {
+        list.innerHTML = '';
+        document.getElementById('room-counters').style.display = 'none';
+        document.getElementById('add-more-btn').style.display = 'none';
+        return;
+      }
+      document.getElementById('room-counters').style.display = 'flex';
+      list.innerHTML = state.photos.map((p, i) => `
+        <div class="photo-thumb">
+          <img src="${p.dataUrl}" alt="${p.roomLabel}">
+          <div class="thumb-tag">${p.roomLabel}</div>
+          <button class="thumb-del" onclick="removePhoto(${i})">×</button>
+        </div>
+      `).join('');
+    }
+
+    function updateCounters() {
+      const beds   = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('bedroom')).length;
+      const baths  = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('bathroom')).length;
+      const living = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('living')).length;
+      document.getElementById('cnt-bedrooms').innerText = beds;
+      document.getElementById('cnt-bathrooms').innerText = baths;
+      document.getElementById('cnt-living').innerText = living;
+      document.getElementById('cnt-photos').innerText = state.photos.length;
+    }
+
+    // ─────────────────────────────────────────────
+    //  GPS
+    // ─────────────────────────────────────────────
+    function getGPS() {
+      if (!navigator.geolocation) {
+        alert('Tu navegador no soporta geolocalización.');
+        return;
+      }
+      const btn = event.target;
+      btn.disabled = true;
+      btn.innerText = '⌛ Obteniendo ubicación…';
+
+      navigator.geolocation.getCurrentPosition(pos => {
+        state.gpsLat = pos.coords.latitude;
+        state.gpsLng = pos.coords.longitude;
+        const coordsEl = document.getElementById('gps-coords');
+        coordsEl.style.display = 'block';
+        coordsEl.innerHTML = `📍 Coordenadas capturadas: <strong>${state.gpsLat.toFixed(6)}, ${state.gpsLng.toFixed(6)}</strong> (±${Math.round(pos.coords.accuracy)}m)`;
+        btn.disabled = false;
+        btn.innerText = '✅ GPS Capturado';
+      }, err => {
+        btn.disabled = false;
+        btn.innerText = '📍 Usar GPS';
+        alert('No se pudo obtener la ubicación: ' + err.message);
+      }, { enableHighAccuracy: true, timeout: 15000 });
+    }
+
+    // ─────────────────────────────────────────────
+    //  Summary
+    // ─────────────────────────────────────────────
+    function buildSummary() {
+      const beds   = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('bedroom')).length;
+      const baths  = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('bathroom')).length;
+      const living = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('living')).length;
+
+      const price = document.getElementById('prop-price').value;
+      const mode  = document.getElementById('prop-mode').value;
+      const currency = document.getElementById('prop-currency').value;
+      const priceStr = price ? `${currency} ${Number(price).toLocaleString()}${mode === 'Alquiler' ? '/mes' : ''}` : '—';
+
+      const photosHtml = state.photos.slice(0, 8).map(p =>
+        `<img src="${p.dataUrl}" title="${p.roomLabel}">`
+      ).join('') + (state.photos.length > 8 ? `<span style="color:var(--muted);font-size:0.8rem;align-self:center"> +${state.photos.length-8} más</span>` : '');
+
+      document.getElementById('summary-content').innerHTML = `
+        <div class="summary-section">
+          <div class="summary-title">📸 Fotos (${state.photos.length})</div>
+          <div class="summary-photos">${photosHtml || '<span style="color:var(--muted);font-size:0.85rem">Sin fotos</span>'}</div>
+          <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+            <span style="color:var(--gold);font-size:0.85rem">🛏 ${beds} cuartos</span>
+            <span style="color:var(--gold);font-size:0.85rem">🚿 ${baths} baños</span>
+            <span style="color:var(--gold);font-size:0.85rem">🛋 ${living} salas</span>
+          </div>
+        </div>
+        <div class="summary-section">
+          <div class="summary-title">📍 Ubicación</div>
+          <div class="summary-row"><span class="key">Dirección</span><span class="val">${document.getElementById('address-input').value || '—'}</span></div>
+          <div class="summary-row"><span class="key">Zona</span><span class="val">${document.getElementById('zone-from-gps').value || document.getElementById('prop-zone').value || '—'}</span></div>
+          <div class="summary-row"><span class="key">GPS</span><span class="val">${state.gpsLat ? `${state.gpsLat.toFixed(5)}, ${state.gpsLng.toFixed(5)}` : 'No capturado'}</span></div>
+        </div>
+        <div class="summary-section">
+          <div class="summary-title">🏠 Detalles</div>
+          <div class="summary-row"><span class="key">Título</span><span class="val">${document.getElementById('prop-title').value || '—'}</span></div>
+          <div class="summary-row"><span class="key">Precio</span><span class="val">${priceStr}</span></div>
+          <div class="summary-row"><span class="key">Modo</span><span class="val">${mode}</span></div>
+          <div class="summary-row"><span class="key">Categoría</span><span class="val">${document.getElementById('prop-category').value}</span></div>
+          <div class="summary-row"><span class="key">Superficie</span><span class="val">${document.getElementById('prop-surface').value || '—'} m²</span></div>
+          <div class="summary-row"><span class="key">Características</span><span class="val">${document.getElementById('prop-features').value || '—'}</span></div>
+        </div>
+      `;
+    }
+
+    // ─────────────────────────────────────────────
+    //  Publish
+    // ─────────────────────────────────────────────
+    async function publishProperty() {
+      const btn = document.getElementById('publish-btn');
+      const title = document.getElementById('prop-title').value.trim();
+      const price = parseFloat(document.getElementById('prop-price').value);
+      const zone  = document.getElementById('prop-zone').value.trim() || document.getElementById('zone-from-gps').value.trim();
+
+      if (!title || !price || !zone) {
+        alert('Por favor completa al menos: Título, Precio y Zona (Paso 3).');
+        goStep(3);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Subiendo fotos…';
+
+      // 1. Upload photos to Cloudinary
+      const uploadedPhotos = [];
+      for (let i = 0; i < state.photos.length; i++) {
+        const p = state.photos[i];
+        btn.innerHTML = `<span class="spinner"></span> Subiendo foto ${i+1}/${state.photos.length}…`;
+        try {
+          const base64 = p.dataUrl.split(',')[1];
+          const mimeType = p.file.type || 'image/jpeg';
+          const res = await fetch('/api/uploads/photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.token}` },
+            body: JSON.stringify({ image: base64, mimeType, roomType: p.roomKey }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            p.cloudUrl = data.url;
+            uploadedPhotos.push({ url: data.url, roomType: p.roomKey, label: p.roomLabel });
+          }
+        } catch(e) { console.warn('Upload failed for photo', i, e); }
+      }
+
+      // 2. Count rooms
+      btn.innerHTML = '<span class="spinner"></span> Publicando…';
+      const beds   = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('bedroom')).length;
+      const baths  = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('bathroom')).length;
+      const living = state.photos.filter(p => p.roomKey && p.roomKey.startsWith('living')).length;
+
+      const features = document.getElementById('prop-features').value
+        .split(',').map(f => f.trim()).filter(Boolean);
+
+      // 3. Create property in DB
+      const payload = {
+        title,
+        description: document.getElementById('prop-desc').value.trim() || title,
+        price,
+        currency: document.getElementById('prop-currency').value,
+        mode: document.getElementById('prop-mode').value,
+        category: document.getElementById('prop-category').value,
+        zone,
+        surface: parseFloat(document.getElementById('prop-surface').value) || 0,
+        features,
+        images: uploadedPhotos.map(p => p.url),
+        roomPhotos: uploadedPhotos,
+        bedrooms: beds || null,
+        bathrooms: baths || null,
+        livingRooms: living || null,
+        address: document.getElementById('address-input').value.trim() || null,
+        latitude: state.gpsLat,
+        longitude: state.gpsLng,
+      };
+
+      try {
+        const res = await fetch('/api/properties', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.token}` },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          goStep(5);
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = '🚀 Publicar Propiedad';
+          alert('Error al publicar: ' + (data.error || 'Error desconocido'));
+        }
+      } catch(e) {
+        btn.disabled = false;
+        btn.innerHTML = '🚀 Publicar Propiedad';
+        alert('Error de conexión. Intenta de nuevo.');
+      }
+    }
+
+    function goStep(n) {
+      if (n > 4) {
+        // success
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        document.getElementById('step-success').classList.add('active');
+        // mark all done in progress
+        for (let i = 1; i <= 4; i++) {
+          const sc = document.getElementById(`sc-${i}`);
+          sc.classList.remove('active'); sc.classList.add('done'); sc.innerHTML = '✓';
+          if (i < 4) document.getElementById(`line-${i}`).classList.add('done');
+        }
+        currentStep = 5;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (n === 4) buildSummary();
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      currentStep = n;
+      document.getElementById(`step-${n}`).classList.add('active');
+
+      for (let i = 1; i <= 4; i++) {
+        const sc = document.getElementById(`sc-${i}`);
+        const sl = document.getElementById(`sl-${i}`);
+        sc.classList.remove('active', 'done');
+        sl.classList.remove('active');
+        if (i < n) { sc.classList.add('done'); sc.innerHTML = '✓'; }
+        else if (i === n) { sc.classList.add('active'); sc.innerHTML = i; sl.classList.add('active'); }
+        else { sc.innerHTML = i; }
+        if (i < 4) document.getElementById(`line-${i}`).classList.toggle('done', i < n);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Sync zone field
+      if (n === 3) {
+        const zoneGps = document.getElementById('zone-from-gps').value;
+        if (zoneGps && !document.getElementById('prop-zone').value) {
+          document.getElementById('prop-zone').value = zoneGps;
+        }
+      }
+    }
+
+    function resetWizard() {
+      state.photos = [];
+      state.stagingQueue = [];
+      state.stagingIndex = 0;
+      state.gpsLat = null;
+      state.gpsLng = null;
+      renderPhotosThumb();
+      updateCounters();
+      document.getElementById('photo-staging').style.display = 'none';
+      document.getElementById('step-success').classList.remove('active');
+      currentStep = 1;
+      document.getElementById('step-1').classList.add('active');
+      for (let i = 1; i <= 4; i++) {
+        const sc = document.getElementById(`sc-${i}`);
+        const sl = document.getElementById(`sl-${i}`);
+        sc.classList.remove('active','done');
+        sl.classList.remove('active');
+        sc.innerHTML = i;
+        if (i < 4) document.getElementById(`line-${i}`).classList.remove('done');
+      }
+      document.getElementById('sc-1').classList.add('active');
+      document.getElementById('sl-1').classList.add('active');
+      ['address-input','zone-from-gps','prop-title','prop-desc','prop-price','prop-zone','prop-surface','prop-features'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('gps-coords').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ─────────────────────────────────────────────
+    //  Boot
+    // ─────────────────────────────────────────────
+    checkAuth();
+  </script>
+</body>
+</html>
