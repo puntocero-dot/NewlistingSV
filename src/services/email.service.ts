@@ -48,16 +48,14 @@ export const emailService = {
   /**
    * Envía confirmación cordial y corporativa al cliente potencial.
    */
-  async sendClientConfirmation(clientEmail: string) {
+  async sendClientConfirmation(clientEmail: string, visitDate?: string) {
     if (!process.env.RESEND_API_KEY) {
-      console.log('⚠️ Simulación de Email a Cliente:', clientEmail);
+      console.log('⚠️ Simulación de Email a Cliente:', clientEmail, visitDate);
       return;
     }
 
     try {
       const { data, error } = await resend.emails.send({
-        // IMPORTANTE: Resend restringe envíos a dominios externos en modo "Sandbox". 
-        // Si no has validado tu dominio, solo podrás enviarte correos a ti mismo.
         from: 'New Listing SV <onboarding@resend.dev>', 
         to: clientEmail,
         subject: 'Cita en proceso - New Listing El Salvador',
@@ -74,6 +72,7 @@ export const emailService = {
                 Hemos recibido sus datos a través de nuestro asistente ARIA. Un asesor exclusivo 
                 de nuestra cartera premium ha sido notificado y se pondrá en contacto con usted 
                 a la brevedad para coordinar su visita.
+                ${visitDate ? `<br><br><strong>Horario sugerido:</strong> ${visitDate}` : ''}
               </p>
               
               <div style="margin-top: 40px; border-top: 1px solid #333; padding-top: 20px;">

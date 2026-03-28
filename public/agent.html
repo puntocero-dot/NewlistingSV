@@ -214,6 +214,7 @@
 
         container.innerHTML = leads.map(l => {
           const date = new Date(l.createdAt).toLocaleDateString('es-ES', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+          const visit = l.preferences && l.preferences.last_visit_request ? l.preferences.last_visit_request : null;
           return `
             <div class="lead-item">
               <div class="lead-info">
@@ -221,6 +222,7 @@
                 <div class="lead-meta">
                   ${l.email ? `<span class="lead-chip">✉ ${l.email}</span>` : ''}
                   ${l.phone ? `<span class="lead-chip">📞 ${l.phone}</span>` : ''}
+                  ${visit ? `<span class="lead-chip" style="background:var(--primary); color:#000;">🕒 Cita: ${visit}</span>` : ''}
                 </div>
               </div>
               <div class="lead-date">${date}</div>
