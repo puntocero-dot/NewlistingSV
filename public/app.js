@@ -29,7 +29,8 @@ function renderProperties(properties) {
                 <div class="prop-price">$${p.price.toLocaleString()}</div>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function filterProperties(category) {
