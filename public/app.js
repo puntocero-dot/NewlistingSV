@@ -15,9 +15,13 @@ async function loadProperties() {
 
 function renderProperties(properties) {
     const grid = document.getElementById('properties-grid');
-    grid.innerHTML = properties.map(p => `
+    grid.innerHTML = properties.map(p => {
+        const coverImg = p.images && p.images.length > 0
+            ? `<img src="${p.images[0]}" alt="${p.title}" style="width:100%; height:100%; object-fit:cover;">`
+            : `🏠`;
+        return `
         <div class="property-card" onclick="openPropertyModal('${p.id}')">
-            <div class="prop-img">🏠</div>
+            <div class="prop-img">${coverImg}</div>
             <div class="prop-info">
                 <span class="prop-tag">${p.mode} &middot; ${p.category || 'General'}</span>
                 <h3>${p.title}</h3>
@@ -46,10 +50,14 @@ async function openPropertyModal(id) {
         const res = await fetch(`/api/properties/${id}`);
         const p = await res.json();
         
+        const coverImg = p.images && p.images.length > 0
+            ? `<img src="${p.images[0]}" alt="${p.title}" style="width:100%; height:100%; object-fit:cover;">`
+            : `🏠`;
+
         const modalBody = document.getElementById('modal-body');
         modalBody.innerHTML = `
             <div class="modal-grid">
-                <div class="modal-img">🏠</div>
+                <div class="modal-img" style="padding:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#111;">${coverImg}</div>
                 <div class="modal-info">
                     <span class="prop-tag">${p.mode}</span>
                     <span class="prop-tag" style="background:var(--accent);">${p.category}</span>
