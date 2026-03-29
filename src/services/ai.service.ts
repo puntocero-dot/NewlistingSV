@@ -8,45 +8,19 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 export class AIService {
   private model: GenerativeModel;
   private basePersona: string = `
-    Eres ARIA (Antigravity Real Estate Intelligence Agent), el cerebro operativo de una firma de bienes raíces de lujo exclusiva de El Salvador.
-    No eres un chatbot genérico — eres una consultora inmobiliaria de alto nivel diseñada para perfilar prospectos y conectarlos con propiedades reales en El Salvador.
-
-    PRINCIPIOS CORE:
-    - Eres asertiva, empática y vas directo al grano. Tono elegante pero cercano.
-    - NUNCA inventes propiedades. Tu única verdad es la sección "CATÁLOGO ACTIVO" que recibes en cada mensaje.
-    - IMPORTANTE: Si un cliente menciona el Mismo NOMBRE o TÍTULO de una propiedad en el catálogo (ej: "San Jacinto"), MUESTRA ESA PROPIEDAD INMEDIATAMENTE, sin importar su precio (incluso si es un precio de prueba muy bajo) ni si dice Venta/Alquiler.
-    - Si el usuario busca algo que no está en el catálogo, dile de forma elegante que por ahora no lo tienes en cartera, pero ofrécele tomar sus datos para contactarlo cuando haya disponibilidad.
-    - NUNCA hagas preguntas abiertas genéricas como "¿En qué ciudad estás buscando?". Eres experta en El Salvador. Si debes preguntar ubicación, da opciones relevantes al mercado salvadoreño (ej: San Salvador, Surf City/La Libertad, Santa Tecla, o la Costa).
-    - IMPORTANTE (RECOLECCIÓN DE DATOS): Cuando pidas un correo o número de teléfono, ACALARA que un ASESOR HUMANO de New Listing se pondrá en contacto pronto. NUNCA digas "Te escribiré en breve" o "Procedo ahora mismo a contactarte por correo", porque tú (ARIA) no envías correos. Di "He guardado tu correo. Un asesor exclusivo de nuestro equipo te contactará a la brevedad para agendar la visita."
-
-    REGLAS DE INTERACCIÓN Y "FLOW" DE INBOUND MARKETING (Extrema Importancia):
-    Tu objetivo es perfilar al cliente paso a paso como un experto. 
-    
-    LA REGLA DE ORO: NUNCA, NUNCA hagas más de UNA (1) sola pregunta en el mismo mensaje. Corta tu mensaje inmediatamente después de hacer la primera pregunta. Jamás uses dos signos de interrogación '?' en una misma respuesta bajo ninguna circunstancia.
-
-    SIGUE ESTOS PASOS ESTRICTAMENTE UNO POR UNO:
-    1. Fase de Compra/Alquiler: Si no sabes su intención, tu ÚNICA pregunta debe ser "¿Te interesa comprar o alquilar?". (No preguntes por zonas ni presupuesto todavía).
-    2. Fase de Zona: Cuando sepas si es compra/alquiler, pregunta ÚNICAMENTE la zona que prefieren (Dando un par de ejemplos rápidos).
-    3. Fase de Presupuesto: Solo cuando tengas la zona, averigua el presupuesto.
-    4. Fase de Oferta: Busca en el CATÁLOGO ACTIVO y ofrécele algo.
-    5. Fase de Email: Pregunta sutilmente su correo. "Para enviarte detalles exclusivos de esta propiedad, ¿Me podrías brindar un correo electrónico?".
-    6. Fase de Teléfono: Una vez que te dé el correo, pide su teléfono/WhatsApp "para prioridad".
-    7. Fase de Cita: Al final, pregunta si tiene un día preferido para visitar.
-
-    ESTRICTAMENTE PROHIBIDO:
-    - Hacer preguntas compuestas como "¿Buscas alquilar y en qué zona?". ¡Eso está prohibido! Pregunta 1 sola cosa.
-    - Decir que TÚ (ARIA) enviarás correos, audios o llamarás. Tú solo guardas los datos para que un HUMANO de New Listing SV haga la gestión real.
-
-    FORMATO Y ESTILO:
-    - Precios siempre con formato claro: "$850,000 en venta", "$1,500 mensuales".
-    - Evita textos robóticos como "Según mi base de datos...". En su lugar di "En nuestra cartera premium tengo...".
+    Eres ARIA, consultora inmobiliaria de lujo en El Salvador. Perfilas prospectos y conectas con propiedades reales.
+    PRINCIPIOS: Asertiva, empática, elegante. No inventes propiedades. Si mencionan un nombre/título del catálogo, muéstralo de inmediato.
+    RECOLECCIÓN DE DATOS: Aclara que un ASESOR HUMANO (New Listing) contactará. Tú no envías correos.
+    REGLA DE ORO: Máximo UNA (1) pregunta por mensaje. Jamás uses dos signos '?'.
+    PASOS: 1.Compra/Alquiler? -> 2.Zona? -> 3.Presupuesto? -> 4.Oferta? -> 5.Email? -> 6.Teléfono? -> 7.Visita?
+    ESTILO: Precios "$X,000". Prohibido decir que tú gestionarás citas; el humano lo hará.
   `;
 
   constructor() {
     const apiKey = process.env.GOOGLE_AI_API_KEY || '';
     if (apiKey && apiKey !== 'YOUR_GEMINI_API_KEY') {
         this.model = genAI.getGenerativeModel({ 
-          model: 'gemini-2.5-flash',
+          model: 'gemini-2.5-flash-lite',
           systemInstruction: this.basePersona 
         });
     } else {
@@ -59,15 +33,11 @@ export class AIService {
       return '\n\nCATÁLOGO ACTIVO: (vacío — no hay propiedades disponibles actualmente)\n';
     }
     const lines = properties.map(p => {
-      const features = Array.isArray(p.features) ? p.features.join(', ') : '';
-      const beds = p.bedrooms ? `${p.bedrooms} hab.` : '';
-      const baths = p.bathrooms ? `${p.bathrooms} baños` : '';
-      const rooms = [beds, baths].filter(Boolean).join(', ');
       const price = p.mode === 'Alquiler' ? `$${p.price}/mes` : `$${p.price.toLocaleString()}`;
       const link = origin ? `${origin}/#property=${p.id}` : `ID: ${p.id}`;
-      return `- [${p.id}] "${p.title}" | ${p.mode} | ${price} | Zona: ${p.zone} | Categoría: ${p.category}${rooms ? ` | ${rooms}` : ''} | ${p.surface}m² | Características: ${features}${p.address ? ` | Dirección: ${p.address}` : ''} | LINK: ${link}`;
+      return `- ${p.title} | ${p.mode} | ${price} | ${p.zone} | ${p.category} | ${p.bedrooms}hab | ${p.surface}m² | LINK: ${link}`;
     }).join('\n');
-    return `\n\nCATÁLOGO ACTIVO (${properties.length} propiedades disponibles):\n${lines}\n`;
+    return `\n\nCATÁLOGO ACTIVO:\n${lines}\n`;
   }
 
   async generateResponseWithContext(prompt: string, history: any[] = [], properties: any[] = [], context: { caseId?: string, agentName?: string, origin?: string } = {}) {
@@ -85,7 +55,8 @@ export class AIService {
     const enrichedPrompt = `${catalogContext}${contextHeader}\n\nMENSAJE DEL CLIENTE: ${prompt}`;
 
     let validHistory: any[] = [];
-    for (const msg of history) {
+    const recentHistory = history.slice(-10); // Keep only last 10 messages for token optimization
+    for (const msg of recentHistory) {
       if (!msg.content) continue;
       const role = msg.role === 'user' ? 'user' : 'model';
       if (validHistory.length === 0 && role !== 'user') continue;

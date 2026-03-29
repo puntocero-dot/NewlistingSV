@@ -8,11 +8,28 @@ export async function conversationRoutes(app: FastifyInstance) {
     const { message, history } = request.body as { message: string; history?: any[] };
     
     try {
-      // Fetch live property catalog to give ARIA real context
+      // 1. Smart Keyword Extraction for Filtering (Cost Optimization)
+      const lowerMsg = message.toLowerCase();
+      const zones = ['escalón', 'santa tecla', 'antiguo cuscatlán', 'nuevo cuscatlán', 'surf city', 'la libertad', 'san benito', 'merliot', 'toscana', 'madre selva'];
+      const modes = ['venta', 'alquiler', 'comprar', 'rentar'];
+      const categories = ['casa', 'apartamento', 'terreno', 'local', 'oficina', 'playa'];
+
+      const detectedZone = zones.find(z => lowerMsg.includes(z));
+      let detectedMode = modes.find(m => lowerMsg.includes(m));
+      if (detectedMode === 'comprar') detectedMode = 'Venta';
+      if (detectedMode === 'rentar') detectedMode = 'Alquiler';
+      const detectedCategory = categories.find(c => lowerMsg.includes(c));
+
+      // 2. Fetch properties with filters
       const properties = await prisma.property.findMany({
-        where: { status: 'AVAILABLE' },
+        where: { 
+          status: 'AVAILABLE',
+          zone: detectedZone ? { contains: detectedZone, mode: 'insensitive' } : undefined,
+          mode: detectedMode ? { contains: detectedMode, mode: 'insensitive' } : undefined,
+          category: detectedCategory ? { contains: detectedCategory, mode: 'insensitive' } : undefined,
+        },
         orderBy: { createdAt: 'desc' },
-        take: 50,
+        take: 12, // Reduced from 50 to 12 for token optimization
       });
 
       // Lead management logic
@@ -118,7 +135,6 @@ export async function conversationRoutes(app: FastifyInstance) {
           origin: request.headers.origin || `http://${request.hostname}`
         }
       );
-      return { response };
       return { response };
     } catch (error) {
       app.log.error(error);
