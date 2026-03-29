@@ -10,6 +10,7 @@ export async function conversationRoutes(app: FastifyInstance) {
     try {
       // Fetch live property catalog to give ARIA real context
       const properties = await prisma.property.findMany({
+        where: { status: 'AVAILABLE' },
         orderBy: { createdAt: 'desc' },
         take: 50,
       });

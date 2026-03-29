@@ -320,25 +320,52 @@
             ? `<img src="${p.images[0]}" alt="${p.title}" loading="lazy">`
             : `<span>🏠</span>`;
           const price = p.mode === 'Alquiler' ? `$${p.price.toLocaleString()}/mes` : `$${p.price.toLocaleString()}`;
-          const rooms = [
-            p.bedrooms ? `🛏 ${p.bedrooms}` : '',
-            p.bathrooms ? `🚿 ${p.bathrooms}` : '',
-            p.livingRooms ? `🛋 ${p.livingRooms}` : '',
-          ].filter(Boolean).join('  ');
+          const currentStatus = p.status || 'AVAILABLE';
           return `
-            <div class="prop-item">
-              <div class="prop-item-img">${imgHtml}</div>
-              <div class="prop-item-body">
-                <span class="prop-item-tag">${p.mode} · ${p.category}</span>
+            <div class="prop-item" style="display:flex; flex-direction:column;">
+              <div class="prop-item-img">
+                ${imgHtml}
+                ${currentStatus !== 'AVAILABLE' ? `<div class="ribbon ${currentStatus.toLowerCase()}" style="font-size:0.5rem; top:15px; right:-30px; padding:3px 30px;">${currentStatus}</div>` : ''}
+              </div>
+              <div class="prop-item-body" style="flex:1; display:flex; flex-direction:column;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+                   <span class="prop-item-tag">${p.mode} · ${p.category}</span>
+                   <select class="status-select" style="font-size:0.65rem; padding:0.1rem 0.3rem;" onchange="updatePropertyStatus('${p.id}', this.value)">
+                     <option value="AVAILABLE" ${currentStatus==='AVAILABLE'?'selected':''}>Disponible</option>
+                     <option value="SOLD" ${currentStatus==='SOLD'?'selected':''}>Vendido</option>
+                     <option value="RENTED" ${currentStatus==='RENTED'?'selected':''}>Alquilado</option>
+                   </select>
+                </div>
                 <div class="prop-item-title">${p.title}</div>
-                <div class="prop-item-zone">📍 ${p.zone}${p.address ? ' — ' + p.address.substring(0,40) : ''}</div>
-                <div class="prop-item-price">${price}</div>
-                ${rooms ? `<div class="prop-item-rooms">${rooms}</div>` : ''}
+                <div class="prop-item-zone">📍 ${p.zone}</div>
+                <div class="prop-item-price" style="margin-top:auto;">${price}</div>
               </div>
             </div>`;
         }).join('')}</div>`;
       } catch(e) {
         document.getElementById('prop-list-container').innerHTML = '<div class="loading-txt">Error cargando propiedades.</div>';
+      }
+    }
+
+    async function updatePropertyStatus(id, newStatus) {
+      try {
+        const token = localStorage.getItem('aria_token');
+        const res = await fetch(`/api/properties/${id}/status`, {
+          method: 'PATCH',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token 
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+        if (res.ok) {
+          loadProperties();
+        } else {
+          const data = await res.json();
+          alert('Error: ' + (data.error || 'No se pudo actualizar'));
+        }
+      } catch(e) {
+        alert('Error de conexión.');
       }
     }
 

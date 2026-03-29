@@ -199,18 +199,22 @@ main {
     border: 1px solid var(--glass-border);
     padding: 1rem 2rem;
     border-radius: var(--radius-md);
-    font-size: 0.85rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
     text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
     text-decoration: none;
-    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-outline:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: var(--gold);
     color: var(--gold);
+    transform: translateY(-2px);
 }
 
 /* Glass Inputs & Selects - Fix for Image 1, 3 */
@@ -309,7 +313,27 @@ select.status-select option {
     border: 1px solid transparent;
     cursor: pointer;
     transition: all 0.5s ease;
+    position: relative;
+    overflow: hidden;
 }
+
+.ribbon {
+    position: absolute;
+    top: 25px;
+    right: -35px;
+    background: var(--gold);
+    color: #060B19;
+    padding: 5px 40px;
+    transform: rotate(45deg);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    text-transform: uppercase;
+}
+.ribbon.sold { background: #ff4757; color: white; }
+.ribbon.rented { background: #ffa502; color: white; }
 
 .glass-card {
     background: var(--glass-bg);

@@ -25,4 +25,17 @@ export async function propertyRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Failed to create property' });
     }
   });
+
+  // Protected: only AGENT or ADMIN can update status
+  app.patch('/:id/status', {
+    preValidation: [app.requireAgent],
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const { status } = request.body as { status: string };
+      return await propertyService.updatePropertyStatus(id, status);
+    } catch (error) {
+      return reply.status(400).send({ error: 'Failed to update property status' });
+    }
+  });
 }

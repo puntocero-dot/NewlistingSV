@@ -52,6 +52,7 @@ model Property {
   features    String[]
   images      String[]
   roomPhotos  Json?    // [{ url, roomType, label }]
+  status      String   @default("AVAILABLE") // AVAILABLE, SOLD, RENTED
   bedrooms    Int?
   bathrooms   Int?
   livingRooms Int?

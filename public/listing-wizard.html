@@ -409,6 +409,14 @@
           </select>
         </div>
         <div class="form-field">
+          <label>Estado Inicial *</label>
+          <select id="prop-status">
+            <option value="AVAILABLE">Disponible</option>
+            <option value="SOLD">Vendido</option>
+            <option value="RENTED">Alquilado</option>
+          </select>
+        </div>
+        <div class="form-field">
           <label>Categoría *</label>
           <select id="prop-category">
             <option value="Playa">Playa</option>
@@ -785,6 +793,7 @@
           <div class="summary-row"><span class="key">Título</span><span class="val">${document.getElementById('prop-title').value || '—'}</span></div>
           <div class="summary-row"><span class="key">Precio</span><span class="val">${priceStr}</span></div>
           <div class="summary-row"><span class="key">Modo</span><span class="val">${mode}</span></div>
+          <div class="summary-row"><span class="key">Estado</span><span class="val">${document.getElementById('prop-status').value}</span></div>
           <div class="summary-row"><span class="key">Categoría</span><span class="val">${document.getElementById('prop-category').value}</span></div>
           <div class="summary-row"><span class="key">Superficie</span><span class="val">${document.getElementById('prop-surface').value || '—'} m²</span></div>
           <div class="summary-row"><span class="key">Características</span><span class="val">${document.getElementById('prop-features').value || '—'}</span></div>
@@ -847,6 +856,7 @@
         price,
         currency: document.getElementById('prop-currency').value,
         mode: document.getElementById('prop-mode').value,
+        status: document.getElementById('prop-status').value,
         category: document.getElementById('prop-category').value,
         zone,
         surface: parseFloat(document.getElementById('prop-surface').value) || 0,

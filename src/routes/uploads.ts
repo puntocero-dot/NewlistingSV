@@ -38,7 +38,8 @@ export async function uploadRoutes(app: FastifyInstance) {
         resource_type: 'image',
         context: roomType ? `room_type=${roomType}` : undefined,
         transformation: [
-          { width: 1920, height: 1080, crop: 'limit', quality: 'auto', fetch_format: 'auto' }
+          { width: 1920, height: 1080, crop: 'limit', quality: 'auto', fetch_format: 'auto' },
+          { effect: 'improve' }
         ],
       });
 

@@ -31,8 +31,11 @@ function renderProperties(properties) {
         const coverImg = p.images && p.images.length > 0
             ? `<img src="${p.images[0]}" alt="${p.title}" style="width:100%; height:100%; object-fit:cover;">`
             : `🏠`;
+        const ribbon = p.status === 'SOLD' ? '<div class="ribbon sold">VENDIDO</div>' : 
+                       p.status === 'RENTED' ? '<div class="ribbon rented">ALQUILADO</div>' : '';
         return `
         <div class="property-card" onclick="openPropertyModal('${p.id}')">
+            ${ribbon}
             <div class="prop-img">${coverImg}</div>
             <div class="prop-info">
                 <span class="prop-tag">${p.mode} &middot; ${p.category || 'General'}</span>
@@ -67,19 +70,34 @@ async function openPropertyModal(id) {
             ? `<img src="${p.images[0]}" alt="${p.title}" style="width:100%; height:100%; object-fit:cover;">`
             : `🏠`;
 
+        const shareUrl = `${window.location.origin}/#property=${p.id}`;
+        const shareText = `Mira esta propiedad en New Listing SV: ${p.title} en ${p.zone}`;
+
         const modalBody = document.getElementById('modal-body');
         modalBody.innerHTML = `
             <div class="modal-grid">
                 <div class="modal-img" style="padding:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#111;">${coverImg}</div>
                 <div class="modal-info">
-                    <span class="prop-tag">${p.mode}</span>
-                    <span class="prop-tag" style="background:var(--accent);">${p.category}</span>
+                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+                        <span class="prop-tag">${p.mode}</span>
+                        <span class="prop-tag" style="background:var(--accent);">${p.category}</span>
+                        ${p.status !== 'AVAILABLE' ? `<span class="prop-tag" style="background:#ff6b6b;">${p.status === 'SOLD' ? 'VENDIDO' : 'ALQUILADO'}</span>` : ''}
+                    </div>
                     <h2>${p.title}</h2>
                     <p style="margin-bottom:0.5rem; color: #fff;">📍 ${p.zone}</p>
                     <div class="price">$${p.price.toLocaleString()}</div>
                     <p>${p.description}</p>
                     <div class="features-list">
                         ${p.features.map(f => `<span>✓ ${f}</span>`).join('')}
+                    </div>
+
+                    <div class="share-actions" style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,0.1);">
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem; text-transform:uppercase; letter-spacing:1px;">Compartir Propiedad</p>
+                        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+                            <button class="btn-gold" style="padding:0.6rem 1.2rem; font-size:0.8rem; background:#25D366; border:none; color:white; border-radius:4px; cursor:pointer;" onclick="window.open('https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}')">WhatsApp</button>
+                            <button class="btn-gold" style="padding:0.6rem 1.2rem; font-size:0.8rem; background:#1877F2; border:none; color:white; border-radius:4px; cursor:pointer;" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}')">Facebook</button>
+                            <button class="btn-outline" style="padding:0.6rem 1.2rem; font-size:0.8rem; cursor:pointer;" onclick="navigator.share ? navigator.share({title: '${p.title}', text: '${shareText}', url: '${shareUrl}'}) : (navigator.clipboard.writeText('${shareUrl}').then(() => alert('Link copiado')))">${navigator.share ? 'Compartir' : 'Copiar Link'}</button>
+                        </div>
                     </div>
                 </div>
             </div>

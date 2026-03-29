@@ -17,6 +17,13 @@ export class PropertyService {
     });
   }
 
+  async updatePropertyStatus(id: string, status: string) {
+    return await prisma.property.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
   async searchProperties(query: any) {
     // Basic search for now
     return await prisma.property.findMany({
@@ -26,8 +33,10 @@ export class PropertyService {
           query.category ? { category: query.category } : {},
           query.zone ? { zone: { contains: query.zone, mode: 'insensitive' } } : {},
           query.maxPrice ? { price: { lte: parseFloat(query.maxPrice) } } : {},
+          query.status ? { status: query.status } : {}, // Status filtering
         ],
       },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }
