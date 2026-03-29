@@ -227,30 +227,46 @@
           const date = new Date(l.createdAt).toLocaleDateString('es-ES', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
           const visit = l.preferences && l.preferences.last_visit_request ? l.preferences.last_visit_request : (l.appointmentDate ? new Date(l.appointmentDate).toLocaleDateString() : null);
           const currentStatus = l.status || 'PENDING';
+          const caseId = l.caseId || '—';
+          const waPhone = l.phone ? l.phone.replace(/\D/g, '') : null;
           
           return `
-            <div class="lead-item" id="lead-${l.id}">
-              <div class="lead-info">
-                <h4>
-                  ${l.name || 'Prospecto Web'}
-                  <span class="status-badge status-${currentStatus}">${currentStatus}</span>
-                </h4>
-                <div class="lead-meta">
-                  ${l.email ? `<span class="lead-chip">✉ ${l.email}</span>` : ''}
-                  ${l.phone ? `<span class="lead-chip">📞 ${l.phone}</span>` : ''}
-                  ${visit ? `<span class="lead-chip" style="background:var(--primary); color:#000;">🕒 Cita: ${visit}</span>` : ''}
+            <div class="glass-card lead-item" id="lead-${l.id}" style="margin-bottom: 1.5rem; padding: 1.5rem; border-left: 4px solid var(--gold);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; width: 100%;">
+                
+                <div class="lead-info" style="flex: 1; min-width: 250px;">
+                  <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.65rem; background: rgba(200, 169, 126, 0.15); color: var(--gold); padding: 0.2rem 0.6rem; border-radius: 4px; letter-spacing: 0.05em; font-weight: 600;">CASE: ${caseId}</span>
+                    <span class="status-badge status-${currentStatus}">${currentStatus}</span>
+                  </div>
+                  <h4 style="font-family: var(--font-heading); font-size: 1.25rem; margin-bottom: 0.8rem; color: #fff;">
+                    ${l.name || 'Prospecto Web'}
+                  </h4>
+                  <div class="lead-meta" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                    ${l.email ? `<span class="lead-chip" style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.8rem;">✉ ${l.email}</span>` : ''}
+                    ${l.phone ? `<span class="lead-chip" style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.8rem;">📞 ${l.phone}</span>` : ''}
+                    ${visit ? `<span class="lead-chip" style="background: rgba(200, 169, 126, 0.1); color: var(--gold); border: 1px solid rgba(200, 169, 126, 0.2); padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500;">📅 Cita: ${visit}</span>` : ''}
+                  </div>
                 </div>
-              </div>
-              <div class="lead-actions">
-                <select class="status-select" onchange="updateLeadStatus('${l.id}', this.value)">
-                  <option value="PENDING" ${currentStatus==='PENDING'?'selected':''}>Pendiente</option>
-                  <option value="CONTACTED" ${currentStatus==='CONTACTED'?'selected':''}>Contactado</option>
-                  <option value="SCHEDULED" ${currentStatus==='SCHEDULED'?'selected':''}>Cita Agendada</option>
-                  <option value="WON" ${currentStatus==='WON'?'selected':''}>Cerrado (WON) 🏆</option>
-                  <option value="LOST" ${currentStatus==='LOST'?'selected':''}>Perdido / No contesta</option>
-                  <option value="FUTURE" ${currentStatus==='FUTURE'?'selected':''}>Búsqueda Futura</option>
-                </select>
-                <div class="lead-date" style="margin-left:1rem">${date}</div>
+
+                <div class="lead-actions" style="display: flex; flex-direction: column; align-items: flex-end; gap: 1rem;">
+                  <div style="display: flex; gap: 0.8rem;">
+                    ${waPhone ? `
+                      <a href="https://wa.me/${waPhone}" target="_blank" class="btn-gold" style="padding: 0.6rem 1rem; font-size: 0.75rem; background: #25D366; color: white; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);">
+                        WhatsApp 💬
+                      </a>
+                    ` : ''}
+                    <select class="status-select" style="min-width: 140px;" onchange="updateLeadStatus('${l.id}', this.value)">
+                      <option value="PENDING" ${currentStatus==='PENDING'?'selected':''}>Pendiente</option>
+                      <option value="CONTACTED" ${currentStatus==='CONTACTED'?'selected':''}>Contactado</option>
+                      <option value="SCHEDULED" ${currentStatus==='SCHEDULED'?'selected':''}>Cita Agendada</option>
+                      <option value="WON" ${currentStatus==='WON'?'selected':''}>Cerrado (WON)</option>
+                      <option value="LOST" ${currentStatus==='LOST'?'selected':''}>Perdido</option>
+                    </select>
+                  </div>
+                  <div class="lead-date" style="font-size: 0.75rem; color: var(--text-muted);">${date}</div>
+                </div>
+
               </div>
             </div>
           `;

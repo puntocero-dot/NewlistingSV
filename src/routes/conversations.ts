@@ -14,76 +14,93 @@ export async function conversationRoutes(app: FastifyInstance) {
         take: 50,
       });
 
-      // Extract email or phone from user message and save as Lead silently
+      // Lead management logic
       const emailMatch = message.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
       const phoneMatch = message.match(/(\+?\d{8,15})/);
-      // Rough extraction for common date/time mentions
       const dateContext = message.match(/(lunes|martes|miércoles|jueves|viernes|sábado|domingo|mañana|hoy|tarde|mañana|pm|am|\d{1,2}:\d{2})/i);
       const visitDate = dateContext ? message.substring(message.indexOf(dateContext[0])).substring(0, 50) : null;
       
+      let identifiedLead: any = null;
+      let agentInfo = "";
+
+      // Helper to generate a friendly Case ID: NL-XXXX
+      const generateCaseId = () => `NL-${Math.floor(1000 + Math.random() * 9000)}`;
+
       if (emailMatch || phoneMatch || visitDate) {
         const leadEmail = emailMatch ? emailMatch[1] : null;
         const leadPhone = phoneMatch ? phoneMatch[1] : null;
-        let isNewLeadForEmail = false;
         
         try {
-          // Look for an agent in the conversation context (if we have property ownership info)
-          // For now, get the first agent if not found
           const defaultAgent = await prisma.agent.findFirst();
-
-          const leadUpdateData = {
+          const leadUpdateData: any = {
             phone: leadPhone || undefined,
             preferences: visitDate ? { last_visit_request: visitDate } : undefined,
           };
 
           if (leadEmail) {
-            const existing = await prisma.lead.findFirst({ where: { email: leadEmail } });
+            const existing = await prisma.lead.findFirst({ 
+              where: { email: leadEmail },
+              include: { agent: true }
+            });
             if (existing) {
-              await prisma.lead.update({ 
+              identifiedLead = await prisma.lead.update({ 
                 where: { id: existing.id }, 
-                data: leadUpdateData 
+                data: leadUpdateData,
+                include: { agent: true }
               });
-              // Notify agent if news info arrived
-              if (defaultAgent && (leadPhone || visitDate)) {
-                emailService.sendAgentNotification(defaultAgent.email, { email: leadEmail, phone: leadPhone || existing.phone || '', date: visitDate || '' });
-              }
             } else {
-              await prisma.lead.create({ 
+              identifiedLead = await prisma.lead.create({ 
                 data: { 
                   email: leadEmail, 
                   phone: leadPhone, 
                   name: 'Lead from ARIA Chat', 
                   agentId: defaultAgent?.id,
+                  caseId: generateCaseId(),
                   preferences: visitDate ? { last_visit_request: visitDate } : {}
-                } as any
+                } as any,
+                include: { agent: true }
               });
-              isNewLeadForEmail = true;
+              emailService.sendClientConfirmation(leadEmail, visitDate || undefined);
             }
           } else if (leadPhone) {
-             const existing = await prisma.lead.findFirst({ where: { phone: leadPhone } });
+             const existing = await prisma.lead.findFirst({ 
+               where: { phone: leadPhone },
+               include: { agent: true }
+             });
              if (existing) {
-               if (visitDate) await prisma.lead.update({ where: { id: existing.id }, data: { preferences: { last_visit_request: visitDate } } });
+               identifiedLead = existing;
+               if (visitDate) identifiedLead = await prisma.lead.update({ 
+                 where: { id: existing.id }, 
+                 data: { preferences: { last_visit_request: visitDate } },
+                 include: { agent: true }
+               });
              } else {
-               await prisma.lead.create({ 
+                identifiedLead = await prisma.lead.create({ 
                  data: { 
                    phone: leadPhone, 
                    name: 'Lead from ARIA Chat', 
                    agentId: defaultAgent?.id,
+                   caseId: generateCaseId(),
                    preferences: visitDate ? { last_visit_request: visitDate } : {}
-                 } as any
+                 } as any,
+                 include: { agent: true }
                });
              }
-          } else if (visitDate) {
-            // If they only gave a date and we can't tie it to a lead yet, we skip for now 
-            // but in a more complex app we'd tie it to the session.
           }
 
-          // Trigger Emails for completely new email leads
-          if (isNewLeadForEmail && leadEmail) {
-            emailService.sendClientConfirmation(leadEmail, visitDate || undefined);
-            if (defaultAgent) {
-              emailService.sendAgentNotification(defaultAgent.email, { email: leadEmail, phone: leadPhone || '', date: visitDate || '' });
-            }
+          if (identifiedLead?.agent) {
+            agentInfo = identifiedLead.agent.name;
+          } else if (defaultAgent) {
+            agentInfo = defaultAgent.name;
+          }
+
+          // Notify agent if new info arrived
+          if (identifiedLead && (leadPhone || visitDate) && identifiedLead.agent) {
+             emailService.sendAgentNotification(identifiedLead.agent.email, { 
+               email: identifiedLead.email || 'N/A', 
+               phone: leadPhone || identifiedLead.phone || '', 
+               date: visitDate || '' 
+             });
           }
         } catch (dbErr) {
           app.log.warn('Could not save lead: ' + dbErr);
@@ -94,7 +111,13 @@ export async function conversationRoutes(app: FastifyInstance) {
         message,
         history || [],
         properties,
+        {
+          caseId: identifiedLead?.caseId,
+          agentName: agentInfo,
+          origin: request.headers.origin || `http://${request.hostname}`
+        }
       );
+      return { response };
       return { response };
     } catch (error) {
       app.log.error(error);

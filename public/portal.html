@@ -61,24 +61,30 @@
         </div>
     </nav>
 
-    <main>
-        <div class="portal-container">
-            <h2 style="color:var(--primary); margin-bottom: 1rem;">Portal de Agentes</h2>
-            <p>Sube una foto de la propiedad para que ARIA extraiga datos geográficos, elabore copy de ventas estructurado y recomiende precio proyectado inteligente.</p>
+    <main style="padding: 4rem 5%;">
+        <div class="glass-card portal-container" style="max-width: 800px; margin: 0 auto;">
+            <h2 style="font-family: var(--font-heading); color: var(--gold); font-size: 2.2rem; margin-bottom: 1rem;">Herramientas ARIA</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2.5rem; line-height: 1.6;">Sube una fotografía de cualquier propiedad. ARIA extraerá datos técnicos, redactará copys de venta de alto impacto y calculará un precio de mercado sugerido basado en visión artificial.</p>
             
-            <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
-                <div style="font-size: 2rem; margin-bottom: 1rem;">📸</div>
-                <h3>Toca para subir foto</h3>
-                <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-muted);">o arrastra la imagen aquí</p>
+            <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()" style="background: rgba(255,255,255,0.02); border: 2px dashed rgba(200, 169, 126, 0.3); border-radius: var(--radius-lg); transition: all 0.3s; padding: 4rem 2rem;">
+                <div style="font-size: 3.5rem; margin-bottom: 1.5rem; filter: drop-shadow(0 0 10px rgba(200, 169, 126, 0.3));">📸</div>
+                <h3 style="font-family: var(--font-heading); color: var(--gold); letter-spacing: 1px;">Capturar Propiedad</h3>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem; color: var(--text-muted);">Haz clic o arrastra una imagen aquí</p>
                 <input type="file" id="file-input" accept="image/*">
             </div>
             
-            <img id="image-preview" class="preview-img">
+            <div style="text-align: center;">
+                <img id="image-preview" class="preview-img" style="margin: 2rem auto; border: 1px solid var(--gold); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            </div>
             
-            <button class="btn-primary" id="analyze-btn" style="width: 100%; margin-top: 1rem; display: none;" onclick="analyzeImage()">Analizar Propiedad con ARIA</button>
-            <div id="loader" class="loader">🧠 ARIA está procesando la imagen...</div>
+            <button class="btn-gold" id="analyze-btn" style="width: 100%; margin-top: 1rem; display: none;" onclick="analyzeImage()">
+                Iniciar Análisis Neuronal ARIA
+            </button>
+            <div id="loader" class="loader" style="text-align: center; margin-top: 2rem;">
+                <span style="color: var(--gold); font-weight: 500; letter-spacing: 2px;">🧠 ARIA ESTÁ ESCANEANDO LA PROPIEDAD...</span>
+            </div>
             
-            <div id="ai-results" class="hidden"></div>
+            <div id="ai-results" class="hidden glass-card" style="margin-top: 2rem; background: rgba(0,0,0,0.3); border-color: rgba(200, 169, 126, 0.2);"></div>
         </div>
     </main>
 

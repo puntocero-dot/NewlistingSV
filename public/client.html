@@ -23,29 +23,42 @@
     </nav>
     
     <div id="login-view" class="auth-container">
-        <h2 style="color:var(--primary); margin-bottom: 2rem; text-align:center;">Acceso Exclusivo de Clientes</h2>
-        <div class="form-group"><input type="email" id="email" placeholder="Correo Electrónico"></div>
-        <div class="form-group"><input type="password" id="password" placeholder="Su Contraseña"></div>
-        <button class="btn-primary" style="width:100%" onclick="loginClient()">Entrar a mi Bóveda</button>
-        <p id="login-error" style="color:red; margin-top:1rem; text-align:center; display:none;"></p>
+        <div class="glass-card" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1.5rem;">🗝️</div>
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; margin-bottom: 0.5rem; color: var(--gold);">Acceso Exclusivo</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2.5rem;">Portal de Clientes VIP — New Listing SV</p>
+            
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <input type="email" id="email" placeholder="Correo Electrónico" class="luxury-input">
+            </div>
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <input type="password" id="password" placeholder="Su Contraseña" class="luxury-input">
+            </div>
+            
+            <button class="btn-gold" style="width: 100%;" onclick="loginClient()">Entrar a mi Bóveda</button>
+            <p id="login-error" style="color: #ff6b6b; margin-top: 1.5rem; font-size: 0.85rem; display: none;"></p>
+        </div>
     </div>
 
     <div id="dashboard-view" class="portal-layout" style="display:none;">
-        <div class="welcome-card">
-            <h1 style="color:var(--primary); margin-bottom:1rem;">Bienvenido de vuelta.</h1>
-            <p>Este es su espacio privado donde la inteligencia de ARIA almacena sus análisis personalizados, favoritos y conversaciones pasadas.</p>
-            <br>
-            <div style="display:flex; justify-content:center; gap:2rem; margin-top:2rem;">
-                <div style="background:rgba(255,255,255,0.05); padding:2rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); width:200px;">
-                    <h3>Favoritos</h3>
-                    <div style="font-size:2rem; color:var(--primary); margin-top:1rem;">0</div>
+        <div class="glass-card welcome-card">
+            <h1 style="font-family: var(--font-heading); font-size: 2.8rem; color: var(--gold); margin-bottom: 1rem;">Bienvenido, Cliente VIP.</h1>
+            <p style="max-width: 600px; margin: 0 auto 3rem; color: var(--text-muted); line-height: 1.6;">Este es su espacio privado donde la inteligencia de ARIA almacena sus análisis personalizados, favoritos y conversaciones pasadas.</p>
+            
+            <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 2rem; flex-wrap: wrap;">
+                <div class="glass-card" style="padding: 2rem; width: 220px; border-color: rgba(200, 169, 126, 0.2);">
+                    <h3 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">Favoritos</h3>
+                    <div style="font-size: 2.5rem; color: var(--gold); margin-top: 0.5rem; font-family: var(--font-heading);">0</div>
                 </div>
-                <div style="background:rgba(255,255,255,0.05); padding:2rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); width:200px;">
-                    <h3>Conversaciones</h3>
-                    <div style="font-size:2rem; color:var(--primary); margin-top:1rem;">1</div>
+                <div class="glass-card" style="padding: 2rem; width: 220px; border-color: rgba(200, 169, 126, 0.2);">
+                    <h3 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">Conversaciones</h3>
+                    <div style="font-size: 2.5rem; color: var(--gold); margin-top: 0.5rem; font-family: var(--font-heading);">1</div>
                 </div>
             </div>
-            <button class="btn-secondary" style="margin-top:4rem;" onclick="logout()">Cerrar Portal</button>
+            
+            <div style="margin-top: 4rem;">
+                <button class="btn-outline" onclick="logout()">Cerrar Portal Seguro</button>
+            </div>
         </div>
     </div>
 

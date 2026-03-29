@@ -3,6 +3,18 @@ let allProperties = [];
 async function init() {
     loadProperties();
     loadAgents();
+    
+    // Deep linking support: check if URL has #property=ID
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+}
+
+function handleHashChange() {
+    const hash = window.location.hash;
+    if (hash.startsWith('#property=')) {
+        const id = hash.replace('#property=', '');
+        openPropertyModal(id);
+    }
 }
 
 async function loadProperties() {

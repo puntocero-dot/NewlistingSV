@@ -80,6 +80,7 @@ model Agent {
 
 model Lead {
   id              String         @id @default(uuid())
+  caseId          String?        @unique
   userId          String?        @unique
   user            User?          @relation(fields: [userId], references: [id])
   agentId         String?

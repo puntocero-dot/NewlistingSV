@@ -54,7 +54,7 @@ export class AIService {
     }
   }
 
-  private buildCatalogContext(properties: any[]): string {
+  private buildCatalogContext(properties: any[], origin: string = ''): string {
     if (!properties || properties.length === 0) {
       return '\n\nCATÁLOGO ACTIVO: (vacío — no hay propiedades disponibles actualmente)\n';
     }
@@ -64,18 +64,25 @@ export class AIService {
       const baths = p.bathrooms ? `${p.bathrooms} baños` : '';
       const rooms = [beds, baths].filter(Boolean).join(', ');
       const price = p.mode === 'Alquiler' ? `$${p.price}/mes` : `$${p.price.toLocaleString()}`;
-      return `- [${p.id}] "${p.title}" | ${p.mode} | ${price} | Zona: ${p.zone} | Categoría: ${p.category}${rooms ? ` | ${rooms}` : ''} | ${p.surface}m² | Características: ${features}${p.address ? ` | Dirección: ${p.address}` : ''}`;
+      const link = origin ? `${origin}/#property=${p.id}` : `ID: ${p.id}`;
+      return `- [${p.id}] "${p.title}" | ${p.mode} | ${price} | Zona: ${p.zone} | Categoría: ${p.category}${rooms ? ` | ${rooms}` : ''} | ${p.surface}m² | Características: ${features}${p.address ? ` | Dirección: ${p.address}` : ''} | LINK: ${link}`;
     }).join('\n');
     return `\n\nCATÁLOGO ACTIVO (${properties.length} propiedades disponibles):\n${lines}\n`;
   }
 
-  async generateResponseWithContext(prompt: string, history: any[] = [], properties: any[] = []) {
+  async generateResponseWithContext(prompt: string, history: any[] = [], properties: any[] = [], context: { caseId?: string, agentName?: string, origin?: string } = {}) {
     if (!this.model) {
       return "*(Modo Demo: API Key no configurada)* Soy ARIA. ¿En qué puedo asistirte?";
     }
 
-    const catalogContext = this.buildCatalogContext(properties);
-    const enrichedPrompt = `${catalogContext}\n\nMENSAJE DEL CLIENTE: ${prompt}`;
+    const { caseId, agentName, origin } = context;
+    const catalogContext = this.buildCatalogContext(properties, origin);
+    
+    let contextHeader = "";
+    if (caseId) contextHeader += `\n[SISTEMA: El Número de Caso asignado a este cliente es ${caseId}. Menciónalo sutilmente al final o cuando sea oportuno.]`;
+    if (agentName) contextHeader += `\n[SISTEMA: El asesor inmobiliario asignado es ${agentName}. Salúdalo en su nombre si el cliente pregunta por un asesor humano o si ya lo habías mencionado antes.]`;
+
+    const enrichedPrompt = `${catalogContext}${contextHeader}\n\nMENSAJE DEL CLIENTE: ${prompt}`;
 
     let validHistory: any[] = [];
     for (const msg of history) {
