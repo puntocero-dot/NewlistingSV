@@ -37,7 +37,25 @@ export class AuthService {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) throw new Error('Invalid credentials');
 
-    const valid = await bcrypt.compare(password, user.password);
+    let valid = false;
+
+    // Check if the stored password is a bcrypt hash
+    if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+      valid = await bcrypt.compare(password, user.password);
+    } else {
+      // Legacy unhashed password
+      valid = (password === user.password);
+
+      // Upgrade to hashed password transparently
+      if (valid) {
+        const hashedPassword = await bcrypt.hash(user.password, 10);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { password: hashedPassword }
+        });
+      }
+    }
+
     if (!valid) throw new Error('Invalid credentials');
 
     return user;
