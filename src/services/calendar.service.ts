@@ -17,17 +17,22 @@ export class CalendarService {
     }
   }
 
+  private isConfigured(): boolean {
+    return !!process.env.GOOGLE_REFRESH_TOKEN;
+  }
+
   async getAvailableSlots(calendarId: string = 'primary') {
-    if (!process.env.GOOGLE_REFRESH_TOKEN) return [];
+    if (!this.isConfigured()) {
+      return { available: false, reason: 'Calendar integration not configured', slots: [] };
+    }
 
     const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
-    
+
     const now = new Date();
     const nextWeek = new Date();
     nextWeek.setDate(now.getDate() + 7);
 
     try {
-      // Get events for the next 7 days
       const res = await calendar.events.list({
         calendarId: calendarId,
         timeMin: now.toISOString(),
@@ -37,21 +42,22 @@ export class CalendarService {
       });
 
       const events = res.data.items || [];
-      // To keep it simple, we just return the next 3 busy events to the AI
-      // A more robust system would calculate free slots between business hours
-      return events.slice(0, 3).map(event => ({
+      const slots = events.slice(0, 3).map(event => ({
         start: event.start?.dateTime || event.start?.date,
         end: event.end?.dateTime || event.end?.date,
         summary: event.summary
       }));
+
+      return { available: true, slots };
     } catch (error) {
-      console.error('Error fetching calendar slots:', error);
-      return [];
+      throw new Error('Failed to fetch calendar availability');
     }
   }
 
   async createAppointment(clientEmail: string, startTime: string, endTime: string, summary: string) {
-    if (!process.env.GOOGLE_REFRESH_TOKEN) return null;
+    if (!this.isConfigured()) {
+      throw new Error('Calendar integration not configured. Set GOOGLE_REFRESH_TOKEN to enable appointment creation.');
+    }
 
     const calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
 
@@ -86,8 +92,7 @@ export class CalendarService {
       });
       return res.data;
     } catch (error) {
-      console.error('Error creating calendar event:', error);
-      throw error;
+      throw new Error('Failed to create calendar event');
     }
   }
 }

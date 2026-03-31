@@ -28,7 +28,7 @@ export async function uploadRoutes(app: FastifyInstance) {
     }
 
     if (!process.env.CLOUDINARY_CLOUD_NAME) {
-      return reply.status(503).send({ error: 'Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in .env' });
+      return reply.status(503).send({ error: 'Image upload service not configured' });
     }
 
     try {
@@ -52,7 +52,7 @@ export async function uploadRoutes(app: FastifyInstance) {
       };
     } catch (error: any) {
       app.log.error(error);
-      return reply.status(500).send({ error: 'Failed to upload image', detail: error.message });
+      return reply.status(500).send({ error: 'Failed to upload image' });
     }
   });
 }

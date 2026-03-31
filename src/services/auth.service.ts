@@ -44,17 +44,23 @@ export class AuthService {
   }
 
   async createInitialAdmin() {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required to create the initial admin');
+    }
+
     const adminExists = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
     if (!adminExists) {
-        const hashedPassword = await bcrypt.hash('admin2026', 10);
-        await prisma.user.create({
-            data: {
-                email: 'admin@aria.com',
-                password: hashedPassword,
-                role: 'ADMIN'
-            }
-        });
-        console.log('Initial ADMIN created: admin@aria.com / admin2026');
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      await prisma.user.create({
+        data: {
+          email: adminEmail,
+          password: hashedPassword,
+          role: 'ADMIN'
+        }
+      });
     }
   }
 }

@@ -1,11 +1,29 @@
 import { FastifyInstance } from 'fastify';
+import { z } from 'zod';
 import { aiService } from '../services/ai.service';
 import { emailService } from '../services/email.service';
 import { prisma } from '../models';
 
+const chatSchema = z.object({
+  message: z.string().min(1, 'Message is required').max(2000, 'Message too long'),
+  history: z.array(z.any()).optional(),
+});
+
 export async function conversationRoutes(app: FastifyInstance) {
-  app.post('/chat', async (request, reply) => {
-    const { message, history } = request.body as { message: string; history?: any[] };
+  // Strict rate limit: 20 requests per minute (AI endpoint is expensive)
+  app.post('/chat', {
+    config: {
+      rateLimit: {
+        max: 20,
+        timeWindow: '1 minute',
+      },
+    },
+  }, async (request, reply) => {
+    const parsed = chatSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.status(400).send({ error: parsed.error.issues[0].message });
+    }
+    const { message, history } = parsed.data;
     
     try {
       // 1. Smart Keyword Extraction for Filtering (Cost Optimization)
@@ -138,7 +156,7 @@ export async function conversationRoutes(app: FastifyInstance) {
       return { response };
     } catch (error) {
       app.log.error(error);
-      return reply.status(500).send({ error: 'Failed to generate response' });
+      return reply.status(500).send({ error: 'Internal server error' });
     }
   });
 

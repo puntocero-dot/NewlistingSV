@@ -18,15 +18,20 @@ declare module '@fastify/jwt' {
 }
 
 export default fp(async function (fastify: FastifyInstance, opts: any) {
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+
   fastify.register(fastifyJwt, {
-    secret: process.env.JWT_SECRET || 'aria-super-secret-key-2026'
+    secret: jwtSecret
   });
 
   fastify.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {
     try {
       await request.jwtVerify();
     } catch (err) {
-      reply.send(err);
+      return reply.code(401).send({ error: 'Authentication required' });
     }
   });
 
@@ -34,10 +39,10 @@ export default fp(async function (fastify: FastifyInstance, opts: any) {
     try {
       await request.jwtVerify();
       if (request.user.role !== 'ADMIN') {
-        reply.code(403).send({ error: 'Requires ADMIN privileges.' });
+        return reply.code(403).send({ error: 'Requires ADMIN privileges.' });
       }
     } catch (err) {
-      reply.send(err);
+      return reply.code(401).send({ error: 'Authentication required' });
     }
   });
 
@@ -45,10 +50,10 @@ export default fp(async function (fastify: FastifyInstance, opts: any) {
     try {
       await request.jwtVerify();
       if (request.user.role !== 'AGENT' && request.user.role !== 'ADMIN') {
-        reply.code(403).send({ error: 'Requires AGENT privileges.' });
+        return reply.code(403).send({ error: 'Requires AGENT privileges.' });
       }
     } catch (err) {
-      reply.send(err);
+      return reply.code(401).send({ error: 'Authentication required' });
     }
   });
 });

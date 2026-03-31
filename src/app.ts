@@ -1,5 +1,7 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
 import { propertyRoutes } from './routes/properties';
@@ -15,12 +17,28 @@ import authPlugin from './plugins/auth';
 const buildApp = (): FastifyInstance => {
   const app = Fastify({
     logger: true,
-    bodyLimit: 52428800 // 50MB
+    bodyLimit: 10485760 // 10MB
   });
 
-  // Middleware
+  // Security headers
+  app.register(helmet, {
+    contentSecurityPolicy: false, // Disabled to allow static frontend assets
+  });
+
+  // CORS — restrict to known frontend origin in production
   app.register(cors, {
-    origin: true, // In production, specify your origin
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
+  // Global rate limiting: 100 requests per minute per IP
+  app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+    errorResponseBuilder: () => ({
+      error: 'Too many requests, please try again later',
+    }),
   });
 
   app.register(fastifyStatic, {
