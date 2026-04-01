@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARIA - Acceso Centralizado</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--bg-color);
+        }
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group input {
+            width: 100%; padding: 1.2rem; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
+            color: white; font-size: 1rem; transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: var(--gold);
+            outline: none;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 2rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        .back-link:hover { color: var(--gold); }
+    </style>
+</head>
+<body>
+    <div class="glass-bg"></div>
+
+    <div class="auth-container">
+        <div class="glass-card" style="text-align: center; padding: 3rem 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🗝️</div>
+            <h2 style="font-family: var(--font-heading); color: var(--gold); margin-bottom: 0.5rem; letter-spacing: 1px; font-size: 2rem;">Portal de Acceso</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2.5rem;">Identifícate para ingresar a tu entorno privado seguro.</p>
+            
+            <div class="form-group">
+                <input type="email" id="email" placeholder="Correo Electrónico" class="luxury-input" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="Contraseña" class="luxury-input" required onkeypress="handleEnter(event)">
+            </div>
+            
+            <button class="btn-gold" style="width:100%; padding: 1.2rem; margin-top: 1rem;" onclick="loginUniversal()" id="login-btn">Acceder al Sistema</button>
+            
+            <p id="login-error" style="color:#ff6b6b; margin-top:1.5rem; display:none; background: rgba(255,107,107,0.1); padding: 1rem; border-radius: 4px; font-size: 0.9rem; border: 1px solid rgba(255,107,107,0.3);"></p>
+
+            <a href="/" class="back-link">← Volver a Inicio</a>
+        </div>
+    </div>
+
+    <script>
+        // Redirect if already logged in!
+        function checkExistingAuth() {
+            const token = localStorage.getItem('aria_token');
+            const role = localStorage.getItem('aria_role');
+            if(token && role) {
+                redirectByRole(role);
+            }
+        }
+
+        function redirectByRole(role) {
+            if(role === 'ADMIN') window.location.href = '/admin.html';
+            else if(role === 'AGENT') window.location.href = '/agent.html';
+            else if(role === 'CLIENT') window.location.href = '/client.html';
+        }
+
+        function handleEnter(e) {
+            if(e.key === 'Enter') loginUniversal();
+        }
+
+        async function loginUniversal() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('login-btn');
+            const errorBox = document.getElementById('login-error');
+
+            if(!email || !password) {
+                errorBox.innerText = 'Por favor, completa todos los campos.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Autenticando...';
+            errorBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, password})
+                });
+                const data = await res.json();
+                
+                if(data.token && data.user && data.user.role) {
+                    localStorage.setItem('aria_token', data.token);
+                    localStorage.setItem('aria_role', data.user.role);
+                    localStorage.setItem('aria_id', data.user.id);
+                    // Magia: Redirige centralizadamente según el rol detectado por el backend
+                    redirectByRole(data.user.role);
+                } else {
+                    errorBox.innerText = data.error || 'Credenciales inválidas.';
+                    errorBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerText = 'Acceder al Sistema';
+                }
+            } catch(e) {
+                console.error(e);
+                errorBox.innerText = 'Falla de conexión con el servidor maestro.';
+                errorBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerText = 'Acceder al Sistema';
+            }
+        }
+
+        checkExistingAuth();
+    </script>
+</body>
+</html>

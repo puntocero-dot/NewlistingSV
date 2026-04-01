@@ -80,20 +80,7 @@
 <body>
     <div class="glass-bg"></div>
     
-    <!-- Login View -->
-    <div id="login-view" class="auth-container">
-        <div class="glass-card" style="text-align: center;">
-            <h2 style="font-family: var(--font-heading); color: var(--gold); margin-bottom: 2rem; letter-spacing: 2px;">R-ADMIN ACCESS</h2>
-            <div class="form-group">
-                <input type="email" id="email" placeholder="Email Root (admin@aria.com)" class="luxury-input">
-            </div>
-            <div class="form-group">
-                <input type="password" id="password" placeholder="R-Password" class="luxury-input">
-            </div>
-            <button class="btn-gold" style="width:100%" onclick="loginAdmin()">Auth Protocol</button>
-            <p id="login-error" style="color:#ff6b6b; margin-top:1.5rem; display:none;"></p>
-        </div>
-    </div>
+
 
     <!-- Dashboard View -->
     <div id="dashboard-view" class="admin-layout" style="display:none;">
@@ -216,34 +203,11 @@
             const token = localStorage.getItem('aria_token');
             const role = localStorage.getItem('aria_role');
             if(token && role === 'ADMIN') {
-                document.getElementById('login-view').style.display = 'none';
                 document.getElementById('dashboard-view').style.display = 'flex';
                 loadUsers();
             } else {
-                document.getElementById('login-view').style.display = 'block';
-                document.getElementById('dashboard-view').style.display = 'none';
+                window.location.href = '/login.html';
             }
-        }
-
-        async function loginAdmin() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email, password})
-                });
-                const data = await res.json();
-                if(data.token && data.user.role === 'ADMIN') {
-                    localStorage.setItem('aria_token', data.token);
-                    localStorage.setItem('aria_role', data.user.role);
-                    checkAuth();
-                } else {
-                    document.getElementById('login-error').innerText = data.error || 'Autenticación Root Fallida.';
-                    document.getElementById('login-error').style.display = 'block';
-                }
-            } catch(e) { console.error(e); }
         }
 
         async function loadUsers() {

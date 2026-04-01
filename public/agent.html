@@ -96,32 +96,10 @@
     </div>
   </nav>
 
-  <!-- AUTH -->
-  <div id="auth-view" class="auth-wrap">
-    <div class="auth-box">
-      <h2>Acceso de Agente</h2>
-      <p>Área exclusiva para agentes y administradores de New Listing SV.</p>
-      <div class="form-field">
-        <label>Correo electrónico</label>
-        <input type="email" id="email" placeholder="agente@aria.com" autocomplete="email">
-      </div>
-      <div class="form-field">
-        <label>Contraseña</label>
-        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <button class="btn-primary" style="width:100%" onclick="loginAgent()">Entrar al Portal</button>
-      <p class="error-txt" id="login-error"></p>
-      <div class="creds-hint">
-        <strong>Credenciales de prueba:</strong><br>
-        Agente: <strong>agente@aria.com</strong> / <strong>agente2026</strong><br>
-        Admin: <strong>admin@aria.com</strong> / <strong>admin2026</strong>
-      </div>
-    </div>
-  </div>
+
 
   <!-- DASHBOARD -->
-  <div id="dashboard-view" class="portal-wrap" style="display:none">
-
+  <div id="dashboard-view" class="portal-wrap" style="display:block">
     <div class="dash-header">
       <div>
         <div class="dash-title">Portal de Agente</div>
@@ -165,43 +143,14 @@
   </div>
 
   <script>
-    async function loginAgent() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const errEl = document.getElementById('login-error');
-      errEl.style.display = 'none';
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json();
-        if (data.token && (data.user.role === 'AGENT' || data.user.role === 'ADMIN')) {
-          localStorage.setItem('aria_token', data.token);
-          localStorage.setItem('aria_role', data.user.role);
-          localStorage.setItem('aria_email', data.user.email);
-          showDashboard(data.user);
-        } else {
-          errEl.innerText = data.error || 'Credenciales inválidas.';
-          errEl.style.display = 'block';
-        }
-      } catch(e) {
-        errEl.innerText = 'Error de conexión.';
-        errEl.style.display = 'block';
-      }
-    }
-
     function logout() {
       localStorage.removeItem('aria_token');
       localStorage.removeItem('aria_role');
       localStorage.removeItem('aria_email');
-      document.getElementById('dashboard-view').style.display = 'none';
-      document.getElementById('auth-view').style.display = 'flex';
+      window.location.href = '/login.html';
     }
 
     function showDashboard(user) {
-      document.getElementById('auth-view').style.display = 'none';
       document.getElementById('dashboard-view').style.display = 'block';
       document.getElementById('agent-email-label').innerText = user ? user.email : localStorage.getItem('aria_email') || '';
       loadProperties();
@@ -374,13 +323,10 @@
       const role = localStorage.getItem('aria_role');
       if (token && (role === 'AGENT' || role === 'ADMIN')) {
         showDashboard(null);
+      } else {
+        window.location.href = '/login.html';
       }
     }
-
-    // Enter to login
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && document.getElementById('auth-view').style.display !== 'none') loginAgent();
-    });
 
     checkAuth();
   </script>

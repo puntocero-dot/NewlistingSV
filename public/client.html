@@ -22,25 +22,7 @@
         </div>
     </nav>
     
-    <div id="login-view" class="auth-container">
-        <div class="glass-card" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1.5rem;">🗝️</div>
-            <h2 style="font-family: var(--font-heading); font-size: 2rem; margin-bottom: 0.5rem; color: var(--gold);">Acceso Exclusivo</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2.5rem;">Portal de Clientes VIP — New Listing SV</p>
-            
-            <div class="form-group" style="margin-bottom: 1rem;">
-                <input type="email" id="email" placeholder="Correo Electrónico" class="luxury-input">
-            </div>
-            <div class="form-group" style="margin-bottom: 2rem;">
-                <input type="password" id="password" placeholder="Su Contraseña" class="luxury-input">
-            </div>
-            
-            <button class="btn-gold" style="width: 100%;" onclick="loginClient()">Entrar a mi Bóveda</button>
-            <p id="login-error" style="color: #ff6b6b; margin-top: 1.5rem; font-size: 0.85rem; display: none;"></p>
-        </div>
-    </div>
-
-    <div id="dashboard-view" class="portal-layout" style="display:none;">
+    <div id="dashboard-view" class="portal-layout" style="display:block;">
         <div class="glass-card welcome-card">
             <h1 style="font-family: var(--font-heading); font-size: 2.8rem; color: var(--gold); margin-bottom: 1rem;">Bienvenido, Cliente VIP.</h1>
             <p style="max-width: 600px; margin: 0 auto 3rem; color: var(--text-muted); line-height: 1.6;">Este es su espacio privado donde la inteligencia de ARIA almacena sus análisis personalizados, favoritos y conversaciones pasadas.</p>
@@ -67,39 +49,16 @@
             const token = localStorage.getItem('aria_token');
             const role = localStorage.getItem('aria_role');
             if(token && role === 'CLIENT') {
-                document.getElementById('login-view').style.display = 'none';
-                document.getElementById('dashboard-view').style.display = 'block';
+                // Access granted
             } else {
-                document.getElementById('login-view').style.display = 'block';
-                document.getElementById('dashboard-view').style.display = 'none';
+                window.location.href = '/login.html';
             }
-        }
-
-        async function loginClient() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email, password})
-                });
-                const data = await res.json();
-                if(data.token && data.user.role === 'CLIENT') {
-                    localStorage.setItem('aria_token', data.token);
-                    localStorage.setItem('aria_role', data.user.role);
-                    checkAuth();
-                } else {
-                    document.getElementById('login-error').innerText = data.error || 'Credenciales inválidas para cliente.';
-                    document.getElementById('login-error').style.display = 'block';
-                }
-            } catch(e) { console.error(e); }
         }
 
         function logout() {
             localStorage.removeItem('aria_token');
             localStorage.removeItem('aria_role');
-            checkAuth();
+            window.location.href = '/login.html';
         }
 
         checkAuth();
