@@ -10,6 +10,7 @@ import { agentRoutes } from './routes/agents';
 import { appointmentRoutes } from './routes/appointments';
 import { uploadRoutes } from './routes/uploads';
 import { leadsRoutes } from './routes/leads';
+import { usersRoutes } from './routes/users';
 
 import { authRoutes } from './routes/auth';
 import authPlugin from './plugins/auth';
@@ -59,6 +60,7 @@ const buildApp = (): FastifyInstance => {
 
   // Routes
   app.register(authRoutes, { prefix: '/api/auth' });
+  app.register(usersRoutes, { prefix: '/api/users' });
   app.register(propertyRoutes, { prefix: '/api/properties' });
   app.register(conversationRoutes, { prefix: '/api/conversations' });
   app.register(agentRoutes, { prefix: '/api/agents' });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARIA Admin Dashboard</title>
+    <title>ARIA R-Admin Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .admin-layout {
@@ -15,10 +15,13 @@
             background: rgba(0,0,0,0.8);
             padding: 2rem;
             border-right: 1px solid rgba(255,255,255,0.1);
+            position: fixed;
+            height: 100vh;
         }
         .content {
             flex: 1;
             padding: 3rem;
+            margin-left: 250px;
         }
         .nav-item {
             color: var(--text-muted);
@@ -38,22 +41,30 @@
             border: 1px solid rgba(255,255,255,0.1);
             margin-bottom: 2rem;
         }
-        .auth-container {
-            max-width: 400px;
-            margin: 100px auto;
+        .auth-container { max-width: 400px; margin: 100px auto; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 1rem; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
+            color: white; font-size: 1rem;
         }
-        .form-group {
-            margin-bottom: 1.5rem;
+        .data-table {
+            width: 100%; border-collapse: collapse; margin-top: 2rem;
         }
-        .form-group input {
-            width: 100%;
-            padding: 1rem;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 4px;
-            color: white;
-            font-size: 1rem;
+        .data-table th, .data-table td {
+            text-align: left; padding: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
+        .data-table th { color: var(--gold); text-transform: uppercase; font-size: 0.8rem; }
+        .action-btn { background: none; border: 1px solid var(--gold); color: var(--gold); padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; transition: 0.2s; margin-right: 0.5rem; }
+        .action-btn:hover { background: var(--gold); color: black; }
+        .action-btn-danger { border-color: #ff6b6b; color: #ff6b6b; }
+        .action-btn-danger:hover { background: #ff6b6b; color: black; }
+        
+        .role-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .role-ADMIN { background: rgba(255, 215, 0, 0.2); color: gold; }
+        .role-AGENT { background: rgba(0, 150, 255, 0.2); color: #00a8ff; }
+        .role-CLIENT { background: rgba(255, 255, 255, 0.1); color: #ccc; }
     </style>
 </head>
 <body>
@@ -62,14 +73,14 @@
     <!-- Login View -->
     <div id="login-view" class="auth-container">
         <div class="glass-card" style="text-align: center;">
-            <h2 style="font-family: var(--font-heading); color: var(--gold); margin-bottom: 2rem;">ARIA Admin</h2>
+            <h2 style="font-family: var(--font-heading); color: var(--gold); margin-bottom: 2rem; letter-spacing: 2px;">R-ADMIN ACCESS</h2>
             <div class="form-group">
-                <input type="email" id="email" placeholder="Email (admin@aria.com)" class="luxury-input">
+                <input type="email" id="email" placeholder="Email Root (admin@aria.com)" class="luxury-input">
             </div>
             <div class="form-group">
-                <input type="password" id="password" placeholder="Contraseña" class="luxury-input">
+                <input type="password" id="password" placeholder="R-Password" class="luxury-input">
             </div>
-            <button class="btn-gold" style="width:100%" onclick="loginAdmin()">Acceso Maestro</button>
+            <button class="btn-gold" style="width:100%" onclick="loginAdmin()">Auth Protocol</button>
             <p id="login-error" style="color:#ff6b6b; margin-top:1.5rem; display:none;"></p>
         </div>
     </div>
@@ -77,51 +88,65 @@
     <!-- Dashboard View -->
     <div id="dashboard-view" class="admin-layout" style="display:none;">
         <div class="sidebar" style="background: rgba(0,0,0,0.4); backdrop-filter: blur(10px);">
-            <h2 style="font-family: var(--font-heading); color: var(--gold); margin-bottom: 2.5rem; letter-spacing: 2px;">ARIA <span>SYSTEM</span></h2>
-            <a href="#" class="nav-item active">Métricas Reales</a>
-            <a href="#" class="nav-item">Gestión Agentes</a>
-            <a href="#" class="nav-item">Inventario</a>
+            <h2 style="font-family: var(--font-heading); color: var(--gold); margin-bottom: 2.5rem; letter-spacing: 2px;">ARIA <span>ROOT</span></h2>
+            <a href="#" class="nav-item active">Gestión de Usuarios</a>
+            <a href="#" class="nav-item">Configuración Global</a>
             <div style="margin-top: auto; padding-top: 5rem;">
-                <button class="btn-outline" onclick="logout()" style="width: 100%; border-color: rgba(255,107,107,0.3); color: #ff6b6b;">Cerrar sesión</button>
+                <button class="btn-outline" onclick="logout()" style="width: 100%; border-color: rgba(255,107,107,0.3); color: #ff6b6b;">Destroy Session</button>
             </div>
         </div>
         <div class="content">
-            <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 3rem;">Panel de Control Central</h1>
+            <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 2rem;">Módulo de Control de Acceso</h1>
             
-            <div class="stats-grid">
-                <div class="glass-card stat-card" style="padding: 1.5rem;">
-                    <h3 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Total Usuarios</h3>
-                    <div class="value" style="font-size: 2.5rem; color: var(--gold); font-family: var(--font-heading);">34</div>
-                </div>
-                <div class="glass-card stat-card" style="padding: 1.5rem;">
-                    <h3 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Propiedades</h3>
-                    <div class="value" style="font-size: 2.5rem; color: var(--gold); font-family: var(--font-heading);">12</div>
-                </div>
-                <div class="glass-card stat-card" style="padding: 1.5rem;">
-                    <h3 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Ventas</h3>
-                    <div class="value" style="font-size: 2.5rem; color: var(--gold); font-family: var(--font-heading);">$2.4M</div>
+            <div class="glass-card" style="margin-bottom: 3rem;">
+                <h3 style="color: var(--gold); margin-bottom: 1.5rem; font-family: var(--font-heading);">Registrar Nuevo Usuario</h3>
+                <div style="display:flex; gap:1rem; flex-wrap: wrap;">
+                    <input type="email" id="new-user-email" placeholder="Email" class="luxury-input" style="flex:1; min-width: 200px;">
+                    <input type="password" id="new-user-pass" placeholder="Clave Asignada" class="luxury-input" style="flex:1; min-width: 200px;">
+                    <select id="new-user-role" class="luxury-input" style="flex:1; min-width: 150px;">
+                        <option value="AGENT">Agente (Vendedor)</option>
+                        <option value="CLIENT">Cliente</option>
+                        <option value="ADMIN">Administrador</option>
+                    </select>
+                    <button class="btn-gold" onclick="createUser()">Registrar</button>
                 </div>
             </div>
 
-            <div class="glass-card" style="margin-top: 3rem;">
-                <h3 style="color: var(--gold); margin-bottom: 1.5rem; font-family: var(--font-heading);">Registrar Nuevo Agente</h3>
-                <div style="display:flex; gap:1rem; flex-wrap: wrap;">
-                    <input type="email" id="new-agent-email" placeholder="Email del Agente" class="luxury-input" style="flex:1; min-width: 200px;">
-                    <input type="password" id="new-agent-pass" placeholder="Clave Asignada" class="luxury-input" style="flex:1; min-width: 200px;">
-                    <button class="btn-gold" onclick="createAgent()">Registrar Agente</button>
-                </div>
+            <div class="glass-card">
+                <h3 style="color: var(--gold); margin-bottom: 1.5rem; font-family: var(--font-heading);">Directorio de Usuarios</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Fecha de Registro</th>
+                            <th>Acciones Maestras</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr><td colspan="5">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <script>
-        // Simple JWT check on load
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('aria_token')}`
+            };
+        }
+
         function checkAuth() {
             const token = localStorage.getItem('aria_token');
             const role = localStorage.getItem('aria_role');
             if(token && role === 'ADMIN') {
                 document.getElementById('login-view').style.display = 'none';
                 document.getElementById('dashboard-view').style.display = 'flex';
+                loadUsers();
             } else {
                 document.getElementById('login-view').style.display = 'block';
                 document.getElementById('dashboard-view').style.display = 'none';
@@ -143,30 +168,103 @@
                     localStorage.setItem('aria_role', data.user.role);
                     checkAuth();
                 } else {
-                    document.getElementById('login-error').innerText = data.error || 'No tienes permisos de Administrador.';
+                    document.getElementById('login-error').innerText = data.error || 'Autenticación Root Fallida.';
                     document.getElementById('login-error').style.display = 'block';
                 }
-            } catch(e) {
-                console.error(e);
-            }
+            } catch(e) { console.error(e); }
         }
 
-        async function createAgent() {
-            const email = document.getElementById('new-agent-email').value;
-            const password = document.getElementById('new-agent-pass').value;
-            const token = localStorage.getItem('aria_token');
+        async function loadUsers() {
+            const tbody = document.getElementById('users-tbody');
             try {
-                // Technically this uses the public register, but in production it should be an admin-only route
+                const res = await fetch('/api/users', { headers: getHeaders() });
+                if(res.status === 401 || res.status === 403) return logout();
+                const users = await res.json();
+                
+                tbody.innerHTML = '';
+                users.forEach(u => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-family: monospace; font-size: 0.8rem; color: #888;">...${u.id.slice(-8)}</td>
+                        <td>${u.email}</td>
+                        <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+                        <td style="font-size: 0.9rem; color: #aaa;">${new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <button class="action-btn" onclick="promptRoleChange('${u.id}', '${u.role}')">Cambiar Rol</button>
+                            <button class="action-btn" onclick="promptPasswordReset('${u.id}')">Reset Pass</button>
+                            <button class="action-btn action-btn-danger" onclick="deleteUser('${u.id}')">Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function createUser() {
+            const email = document.getElementById('new-user-email').value;
+            const password = document.getElementById('new-user-pass').value;
+            const role = document.getElementById('new-user-role').value;
+            if(!email || !password) return alert('Email y clave requeridos');
+            
+            try {
                 const res = await fetch('/api/auth/register', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({email, password, role: 'AGENT', name: 'Agente Nuevo'})
+                    headers: getHeaders(),
+                    body: JSON.stringify({email, password, role})
                 });
-                if(res.ok) alert('Agente creado exitosamente!');
-                else alert('Error creando agente');
+                if(res.ok) {
+                    alert('Usuario creado exitosamente');
+                    loadUsers();
+                } else {
+                    const data = await res.json();
+                    alert('Error: ' + data.error);
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function promptRoleChange(id, currentRole) {
+            const nuevo = prompt(`Rol actual: ${currentRole}\nOpciones: ADMIN, AGENT, CLIENT\nEscribe el nuevo rol:`);
+            if(!nuevo) return;
+            const role = nuevo.trim().toUpperCase();
+            if(!['ADMIN', 'AGENT', 'CLIENT'].includes(role)) return alert('Rol inválido');
+            
+            try {
+                const res = await fetch(`/api/users/${id}/role`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ role })
+                });
+                if(res.ok) loadUsers();
+                else alert('Error cambiando rol');
+            } catch(e) { console.error(e); }
+        }
+
+        async function promptPasswordReset(id) {
+            const nueva = prompt('Escribe la nueva contraseña para este usuario (mínimo 6 caracteres):');
+            if(!nueva) return;
+            if(nueva.length < 6) return alert('Demasiado corta');
+            
+            try {
+                const res = await fetch(`/api/users/${id}/password`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ password: nueva })
+                });
+                if(res.ok) alert('Contraseña reiniciada y encriptada exitosamente.');
+                else alert('Error reseteando clave');
+            } catch(e) { console.error(e); }
+        }
+
+        async function deleteUser(id) {
+            if(!confirm('¿ATENCIÓN: Estás seguro que deseas ELIMINAR PERMANENTEMENTE a este usuario?\n\n- Sus propiedades publicadas quedarán como "huérfanas" (históricas) pero no se borrarán.\n- Su registro no se podrá recuperar.')) return;
+            
+            try {
+                const res = await fetch(`/api/users/${id}`, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+                if(res.ok) loadUsers();
+                else alert('Error eliminando. Verifica si es tu propio usuario u otro tipo de protección.');
             } catch(e) { console.error(e); }
         }
 
