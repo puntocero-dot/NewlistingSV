@@ -65,15 +65,21 @@ export class AuthService {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@aria.com';
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin12345!';
 
-    const adminExists = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+    const admin = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (!admin) {
       await prisma.user.create({
         data: {
           email: adminEmail,
           password: hashedPassword,
           role: 'ADMIN'
         }
+      });
+    } else {
+      await prisma.user.update({
+        where: { email: adminEmail },
+        data: { password: hashedPassword, role: 'ADMIN' }
       });
     }
   }
