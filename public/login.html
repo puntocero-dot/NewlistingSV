@@ -22,13 +22,22 @@
         }
         .form-group { margin-bottom: 1.5rem; }
         .form-group input {
-            width: 100%; padding: 1.2rem; background: rgba(255,255,255,0.05);
+            width: 100%; padding: 1.2rem; background: rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;
-            color: white; font-size: 1rem; transition: border-color 0.3s;
+            color: white !important; font-size: 1rem; transition: border-color 0.3s;
+        }
+        .form-group input::placeholder { color: rgba(255,255,255,0.4); }
+        .form-group input:-webkit-autofill,
+        .form-group input:-webkit-autofill:hover, 
+        .form-group input:-webkit-autofill:focus {
+            -webkit-text-fill-color: white !important;
+            -webkit-box-shadow: 0 0 0px 1000px #1a1a1a inset !important;
+            transition: background-color 5000s ease-in-out 0s;
         }
         .form-group input:focus {
             border-color: var(--gold);
             outline: none;
+            background: rgba(0, 0, 0, 0.3);
         }
         .back-link {
             display: block;

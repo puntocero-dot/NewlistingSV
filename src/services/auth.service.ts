@@ -3,7 +3,8 @@ import bcrypt from 'bcrypt';
 
 export class AuthService {
   async register(data: any) {
-    const { email, password, role, name } = data;
+    const { password, role, name } = data;
+    const email = data.email.toLowerCase();
     
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) throw new Error('User already exists');
@@ -33,7 +34,8 @@ export class AuthService {
     return user;
   }
 
-  async login(email: string, password: string) {
+  async login(emailRaw: string, password: string) {
+    const email = emailRaw.toLowerCase();
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) throw new Error('Invalid credentials');
 
@@ -62,7 +64,7 @@ export class AuthService {
   }
 
   async createInitialAdmin() {
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@aria.com';
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@aria.com').toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin12345!';
 
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
