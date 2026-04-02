@@ -239,8 +239,8 @@
         }
 
         async function createUser() {
-            const email = document.getElementById('new-user-email').value;
-            const password = document.getElementById('new-user-pass').value;
+            const email = document.getElementById('new-user-email').value.trim();
+            const password = document.getElementById('new-user-pass').value.trim();
             const role = document.getElementById('new-user-role').value;
             if(!email || !password) return alert('Email y clave requeridos');
             
@@ -292,7 +292,7 @@
 
         async function submitPasswordReset() {
             const id = document.getElementById('modal-pass-userid').value;
-            const nueva = document.getElementById('modal-pass-input').value;
+            const nueva = document.getElementById('modal-pass-input').value.trim();
 
             if(nueva.length < 6) return alert('Demasiado corta, mínimo 6 caracteres.');
             
