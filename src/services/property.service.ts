@@ -17,10 +17,26 @@ export class PropertyService {
     });
   }
 
+  async updateProperty(id: string, data: any) {
+    return await prisma.property.update({
+      where: { id },
+      data: {
+        ...data,
+        updatedAt: new Date()
+      },
+    });
+  }
+
   async updatePropertyStatus(id: string, status: string) {
     return await prisma.property.update({
       where: { id },
       data: { status },
+    });
+  }
+
+  async deleteProperty(id: string) {
+    return await prisma.property.delete({
+      where: { id },
     });
   }
 

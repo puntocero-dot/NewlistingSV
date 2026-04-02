@@ -31,12 +31,24 @@ model User {
   email     String   @unique
   password  String   // Hashed password
   role      Role     @default(CLIENT)
+  totalTokens Int    @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relationships
   agent     Agent?
   lead      Lead?
+  usageLogs UsageLog[]
+}
+
+model UsageLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  tokensUsed  Int
+  model       String
+  action      String?  // e.g. "chat", "property_analysis"
+  timestamp   DateTime @default(now())
 }
 
 model Property {

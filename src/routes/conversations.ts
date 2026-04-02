@@ -151,7 +151,8 @@ export async function conversationRoutes(app: FastifyInstance) {
         {
           caseId: identifiedLead?.caseId,
           agentName: agentInfo,
-          origin: request.headers.origin || `http://${request.hostname}`
+          origin: request.headers.origin || `http://${request.hostname}`,
+          userId: (request as any).user?.id // Log token usage for authenticated users
         }
       );
       return { response };

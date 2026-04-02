@@ -280,11 +280,15 @@
               <div class="prop-item-body" style="flex:1; display:flex; flex-direction:column;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
                    <span class="prop-item-tag">${p.mode} · ${p.category}</span>
-                   <select class="status-select" style="font-size:0.65rem; padding:0.1rem 0.3rem;" onchange="updatePropertyStatus('${p.id}', this.value)">
-                     <option value="AVAILABLE" ${currentStatus==='AVAILABLE'?'selected':''}>Disponible</option>
-                     <option value="SOLD" ${currentStatus==='SOLD'?'selected':''}>Vendido</option>
-                     <option value="RENTED" ${currentStatus==='RENTED'?'selected':''}>Alquilado</option>
-                   </select>
+                   <div style="display:flex; gap:0.4rem;">
+                     <button class="action-btn" style="font-size:0.65rem; padding:0.1rem 0.3rem;" onclick="window.location.href='/listing-wizard.html?edit=${p.id}'">✏️</button>
+                     <button class="action-btn action-btn-danger" style="font-size:0.65rem; padding:0.1rem 0.3rem;" onclick="deleteProperty('${p.id}')">🗑️</button>
+                     <select class="status-select" style="font-size:0.65rem; padding:0.1rem 0.3rem;" onchange="updatePropertyStatus('${p.id}', this.value)">
+                       <option value="AVAILABLE" ${currentStatus==='AVAILABLE'?'selected':''}>Disponible</option>
+                       <option value="SOLD" ${currentStatus==='SOLD'?'selected':''}>Vendido</option>
+                       <option value="RENTED" ${currentStatus==='RENTED'?'selected':''}>Alquilado</option>
+                     </select>
+                   </div>
                 </div>
                 <div class="prop-item-title">${p.title}</div>
                 <div class="prop-item-zone">📍 ${p.zone}</div>
@@ -294,6 +298,25 @@
         }).join('')}</div>`;
       } catch(e) {
         document.getElementById('prop-list-container').innerHTML = '<div class="loading-txt">Error cargando propiedades.</div>';
+      }
+    }
+
+    async function deleteProperty(id) {
+      if(!confirm('¿Estás seguro que deseas ELIMINAR esta propiedad permanentemente?')) return;
+      try {
+        const token = localStorage.getItem('aria_token');
+        const res = await fetch(`/api/properties/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+          loadProperties();
+        } else {
+          const data = await res.json();
+          alert('Error: ' + (data.error || 'No se pudo eliminar'));
+        }
+      } catch(e) {
+        alert('Error de conexión.');
       }
     }
 

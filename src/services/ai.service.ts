@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import dotenv from 'dotenv';
+import { usageService } from './usage.service';
 
 dotenv.config();
 
@@ -40,7 +41,7 @@ export class AIService {
     return `\n\nCATÁLOGO ACTIVO:\n${lines}\n`;
   }
 
-  async generateResponseWithContext(prompt: string, history: any[] = [], properties: any[] = [], context: { caseId?: string, agentName?: string, origin?: string } = {}) {
+  async generateResponseWithContext(prompt: string, history: any[] = [], properties: any[] = [], context: { caseId?: string, agentName?: string, origin?: string, userId?: string } = {}) {
     if (!this.model) {
       return "*(Modo Demo: API Key no configurada)* Soy ARIA. ¿En qué puedo asistirte?";
     }
@@ -66,6 +67,13 @@ export class AIService {
 
     const chat = this.model.startChat({ history: validHistory });
     const result = await chat.sendMessage(enrichedPrompt);
+    
+    // Log token usage
+    const tokens = result.response.usageMetadata?.totalTokenCount || 0;
+    if (tokens > 0) {
+      await usageService.logTokenUsage(context.userId, tokens, 'gemini-2.5-flash-lite', 'chat');
+    }
+
     return result.response.text();
   }
 
@@ -74,11 +82,18 @@ export class AIService {
     return this.generateResponseWithContext(prompt, history, []);
   }
 
-  async analyzeImage(imageBuffer: Buffer, mimeType: string, prompt: string) {
+  async analyzeImage(imageBuffer: Buffer, mimeType: string, prompt: string, userId?: string) {
     const result = await this.model.generateContent([
       prompt,
       { inlineData: { data: imageBuffer.toString('base64'), mimeType } },
     ]);
+
+    // Log token usage
+    const tokens = result.response.usageMetadata?.totalTokenCount || 0;
+    if (tokens > 0) {
+      await usageService.logTokenUsage(userId, tokens, 'gemini-2.5-flash-lite', 'image_analysis');
+    }
+
     return result.response.text();
   }
 }

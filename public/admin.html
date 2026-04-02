@@ -90,7 +90,9 @@
             <h2 style="font-family: var(--font-heading); color: var(--gold); margin-bottom: 2.5rem; letter-spacing: 2px;">ARIA <span>ROOT</span></h2>
             
             <a onclick="switchTab('users')" id="tab-users" class="nav-item active">Gestión de Usuarios</a>
-            <a onclick="switchTab('config')" id="tab-config" class="nav-item">Configuración Global</a>
+            <a onclick="switchTab('properties')" id="tab-properties" class="nav-item">Catálogo Global</a>
+            <a onclick="switchTab('stats')" id="tab-stats" class="nav-item">Métricas de IA</a>
+            <a onclick="switchTab('config')" id="tab-config" class="nav-item">Configuración</a>
             
             <div style="margin-top: auto;">
                 <button class="btn-outline" onclick="window.location.href='/'" style="width: 100%; margin-bottom: 1rem;">Volver a Inicio</button>
@@ -131,6 +133,66 @@
                         </thead>
                         <tbody id="users-tbody">
                             <tr><td colspan="5">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección: Propiedades -->
+            <div id="section-properties" style="display:none;">
+                <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 2rem;">Inventario de Propiedades</h1>
+                <div class="glass-card">
+                    <h3 style="color: var(--gold); margin-bottom: 1.5rem; font-family: var(--font-heading);">Gestión Centralizada</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Título</th>
+                                <th>Agente</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="properties-tbody">
+                            <tr><td colspan="6">Cargando propiedades...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección: Métricas de IA -->
+            <div id="section-stats" style="display:none;">
+                <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 2rem;">Métricas de Proyecto (IA)</h1>
+                
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                    <div class="glass-card" style="text-align:center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: var(--gold);" id="stat-tokens">0</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Tokens Usados</div>
+                    </div>
+                    <div class="glass-card" style="text-align:center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #4caf50;" id="stat-cost">$0.00</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Costo Estimado (USD)</div>
+                    </div>
+                    <div class="glass-card" style="text-align:center;">
+                        <div style="font-size: 2.5rem; font-weight: 700; color: #00a8ff;" id="stat-leads">0</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Leads Totales</div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <h3 style="color: var(--gold); margin-bottom: 1.5rem; font-family: var(--font-heading);">Top Consumo por Agente</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Tokens Totales</th>
+                                <th>Uso %</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-users-tbody">
+                            <tr><td colspan="4">No hay datos de uso aún.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -191,10 +253,17 @@
 
         function switchTab(tabId) {
             document.getElementById('section-users').style.display = (tabId === 'users') ? 'block' : 'none';
+            document.getElementById('section-properties').style.display = (tabId === 'properties') ? 'block' : 'none';
+            document.getElementById('section-stats').style.display = (tabId === 'stats') ? 'block' : 'none';
             document.getElementById('section-config').style.display = (tabId === 'config') ? 'block' : 'none';
             
             document.getElementById('tab-users').classList.toggle('active', tabId === 'users');
+            document.getElementById('tab-properties').classList.toggle('active', tabId === 'properties');
+            document.getElementById('tab-stats').classList.toggle('active', tabId === 'stats');
             document.getElementById('tab-config').classList.toggle('active', tabId === 'config');
+
+            if(tabId === 'properties') loadAllProperties();
+            if(tabId === 'stats') loadStats();
         }
 
         function closeModals() {
@@ -235,6 +304,67 @@
                     `;
                     tbody.appendChild(tr);
                 });
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadAllProperties() {
+            const tbody = document.getElementById('properties-tbody');
+            try {
+                const res = await fetch('/api/admin/properties', { headers: getHeaders() });
+                const props = await res.json();
+                tbody.innerHTML = '';
+                props.forEach(p => {
+                    const tr = document.createElement('tr');
+                    const img = p.images && p.images.length ? p.images[0] : '';
+                    tr.innerHTML = `
+                        <td><img src="${img}" style="width: 50px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
+                        <td style="font-size: 0.9rem;">${p.title}</td>
+                        <td><span style="font-size: 0.8rem; color: #aaa;">${p.agent ? p.agent.name : '—'}</span></td>
+                        <td style="font-weight: 600; color: var(--gold);">$${p.price.toLocaleString()}</td>
+                        <td><span class="role-badge" style="background: rgba(255,255,255,0.05);">${p.status}</span></td>
+                        <td>
+                            <button class="action-btn" onclick="window.location.href='/listing-wizard.html?edit=${p.id}'">✏️</button>
+                            <button class="action-btn action-btn-danger" onclick="deleteProperty('${p.id}')">🗑️</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats', { headers: getHeaders() });
+                const stats = await res.json();
+                
+                document.getElementById('stat-tokens').innerText = stats.globalTokens.toLocaleString();
+                document.getElementById('stat-cost').innerText = `$${stats.estimatedCostUSD.toFixed(2)}`;
+                document.getElementById('stat-leads').innerText = stats.totalLeads;
+
+                const tbody = document.getElementById('top-users-tbody');
+                tbody.innerHTML = '';
+                stats.topUsers.forEach(u => {
+                    const tr = document.createElement('tr');
+                    const pct = ((u.totalTokens / stats.globalTokens) * 100).toFixed(1);
+                    tr.innerHTML = `
+                        <td>${u.email}</td>
+                        <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+                        <td style="color: var(--gold); font-weight: 600;">${u.totalTokens.toLocaleString()}</td>
+                        <td style="font-size: 0.8rem; color: #888;">${pct}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function deleteProperty(id) {
+            if(!confirm('¿Seguro que quieres ELIMINAR esta propiedad? Esta acción es irreversible.')) return;
+            try {
+                const res = await fetch(`/api/properties/${id}`, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+                if(res.ok) loadAllProperties();
             } catch(e) { console.error(e); }
         }
 

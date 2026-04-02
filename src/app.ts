@@ -11,6 +11,7 @@ import { appointmentRoutes } from './routes/appointments';
 import { uploadRoutes } from './routes/uploads';
 import { leadsRoutes } from './routes/leads';
 import { usersRoutes } from './routes/users';
+import { adminRoutes } from './routes/admin';
 
 import { authRoutes } from './routes/auth';
 import authPlugin from './plugins/auth';
@@ -67,6 +68,7 @@ const buildApp = (): FastifyInstance => {
   app.register(appointmentRoutes, { prefix: '/api/appointments' });
   app.register(uploadRoutes, { prefix: '/api/uploads' });
   app.register(leadsRoutes, { prefix: '/api/leads' });
+  app.register(adminRoutes, { prefix: '/api/admin' });
 
   return app;
 };

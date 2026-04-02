@@ -505,14 +505,13 @@
     let state = {
       token: '',
       photos: [],          // { dataUrl, file, roomKey, roomLabel, cloudUrl }
-      stagingQueue: [],    // files pending tagging
       stagingIndex: 0,
       gpsLat: null,
       gpsLng: null,
+      isEdit: false,
+      editId: null,
     };
 
-    // ─────────────────────────────────────────────
-    //  Auth
     // ─────────────────────────────────────────────
     function checkAuth() {
       const token = localStorage.getItem('aria_token');
@@ -521,7 +520,72 @@
         state.token = token;
         document.getElementById('auth-gate').style.display = 'none';
         document.getElementById('wizard').style.display = 'block';
+        
+        // Check for EDIT mode
+        const params = new URLSearchParams(window.location.search);
+        const editId = params.get('edit');
+        if (editId) {
+          state.isEdit = true;
+          state.editId = editId;
+          loadEditData(editId);
+        }
+
         initWizard();
+      }
+    }
+
+    async function loadEditData(id) {
+      try {
+        const res = await fetch(`/api/properties/${id}`);
+        const p = await res.json();
+        if (!res.ok) throw new Error(p.error);
+
+        // UI Updates
+        document.querySelectorAll('.step-title').forEach(el => {
+          el.innerText = el.innerText.replace('Publicar', 'Editar').replace('Fotos de la', 'Editar Fotos:');
+        });
+        document.getElementById('publish-btn').innerHTML = '💾 Guardar Cambios';
+
+        // State Updates
+        state.gpsLat = p.latitude;
+        state.gpsLng = p.longitude;
+        if (p.latitude) {
+          const coordsEl = document.getElementById('gps-coords');
+          coordsEl.style.display = 'block';
+          coordsEl.innerHTML = `📍 Coordenadas: <strong>${p.latitude.toFixed(6)}, ${p.longitude.toFixed(6)}</strong>`;
+        }
+
+        // Photos
+        if (p.roomPhotos && p.roomPhotos.length) {
+          state.photos = p.roomPhotos.map(rp => ({
+            dataUrl: rp.url, // using cloud url as preview
+            file: { type: 'image/jpeg' }, // placeholder
+            roomKey: rp.roomType,
+            roomLabel: ROOM_TYPES.find(rt => rt.key === rp.roomType)?.label || '📷 Otra',
+            cloudUrl: rp.url
+          }));
+          renderPhotosThumb();
+          updateCounters();
+          document.getElementById('add-more-btn').style.display = 'inline-flex';
+        }
+
+        // Details
+        document.getElementById('address-input').value = p.address || '';
+        document.getElementById('zone-from-gps').value = p.zone || '';
+        document.getElementById('prop-title').value = p.title || '';
+        document.getElementById('prop-desc').value = p.description || '';
+        document.getElementById('prop-price').value = p.price || '';
+        document.getElementById('prop-currency').value = p.currency || 'USD';
+        document.getElementById('prop-mode').value = p.mode || 'Venta';
+        document.getElementById('prop-status').value = p.status || 'AVAILABLE';
+        document.getElementById('prop-category').value = p.category || 'Residencial';
+        document.getElementById('prop-surface').value = p.surface || '';
+        document.getElementById('prop-features').value = (p.features || []).join(', ');
+        document.getElementById('prop-zone').value = p.zone || '';
+
+      } catch(e) {
+        alert('Error cargando propiedad: ' + e.message);
+        window.location.href = '/agent.html';
       }
     }
 
@@ -819,10 +883,17 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span> Subiendo fotos…';
 
-      // 1. Upload photos to Cloudinary
+      // 1. Upload NEW photos to Cloudinary
       const uploadedPhotos = [];
       for (let i = 0; i < state.photos.length; i++) {
         const p = state.photos[i];
+        
+        // If it already has a cloudUrl, it's an existing photo (from edit mode)
+        if (p.cloudUrl && !p.dataUrl.startsWith('data:')) {
+          uploadedPhotos.push({ url: p.cloudUrl, roomType: p.roomKey, label: p.roomLabel });
+          continue;
+        }
+
         btn.innerHTML = `<span class="spinner"></span> Subiendo foto ${i+1}/${state.photos.length}…`;
         try {
           const base64 = p.dataUrl.split(',')[1];
@@ -835,7 +906,7 @@
           const data = await res.json();
           if (res.ok) {
             p.cloudUrl = data.url;
-            uploadedPhotos.push({ url: data.url, roomType: p.roomKey, label: p.roomLabel });
+            uploadedPhotos.push({ url: data.url, roomType: data.roomType || p.roomKey, label: p.roomLabel });
           }
         } catch(e) { console.warn('Upload failed for photo', i, e); }
       }
@@ -872,22 +943,30 @@
       };
 
       try {
-        const res = await fetch('/api/properties', {
-          method: 'POST',
+        const url = state.isEdit ? `/api/properties/${state.editId}` : '/api/properties';
+        const method = state.isEdit ? 'PATCH' : 'POST';
+
+        const res = await fetch(url, {
+          method,
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.token}` },
           body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (res.ok) {
-          goStep(5);
+          if (state.isEdit) {
+            alert('¡Propiedad actualizada con éxito!');
+            window.location.href = (localStorage.getItem('aria_role') === 'ADMIN') ? '/admin.html' : '/agent.html';
+          } else {
+            goStep(5);
+          }
         } else {
           btn.disabled = false;
-          btn.innerHTML = '🚀 Publicar Propiedad';
-          alert('Error al publicar: ' + (data.error || 'Error desconocido'));
+          btn.innerHTML = state.isEdit ? '💾 Guardar Cambios' : '🚀 Publicar Propiedad';
+          alert('Error: ' + (data.error || 'Error desconocido'));
         }
       } catch(e) {
         btn.disabled = false;
-        btn.innerHTML = '🚀 Publicar Propiedad';
+        btn.innerHTML = state.isEdit ? '💾 Guardar Cambios' : '🚀 Publicar Propiedad';
         alert('Error de conexión. Intenta de nuevo.');
       }
     }
