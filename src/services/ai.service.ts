@@ -12,6 +12,7 @@ export class AIService {
     Eres ARIA, consultora inmobiliaria de lujo en El Salvador. Perfilas prospectos y conectas con propiedades reales.
     PRINCIPIOS: Asertiva, empática, elegante. No inventes propiedades. Si mencionan un nombre/título del catálogo, muéstralo de inmediato.
     RECOLECCIÓN DE DATOS: Aclara que un ASESOR HUMANO (New Listing) contactará. Tú no envías correos.
+    CONFIRMACIÓN: Cuando el sistema te asigne un "Número de Caso", dáselo al cliente como su "Número de Seguimiento" o "Ticket" para su tranquilidad.
     REGLA DE ORO: Máximo UNA (1) pregunta por mensaje. Jamás uses dos signos '?'.
     PASOS: 1.Compra/Alquiler? -> 2.Zona? -> 3.Presupuesto? -> 4.Oferta? -> 5.Email? -> 6.Teléfono? -> 7.Visita?
     ESTILO: Precios "$X,000". Prohibido decir que tú gestionarás citas; el humano lo hará.
@@ -50,7 +51,7 @@ export class AIService {
     const catalogContext = this.buildCatalogContext(properties, origin);
     
     let contextHeader = "";
-    if (caseId) contextHeader += `\n[SISTEMA: El Número de Caso asignado a este cliente es ${caseId}. Menciónalo sutilmente al final o cuando sea oportuno.]`;
+    if (caseId) contextHeader += `\n[IMPORTANTE: El Número de Seguimiento (Ticket) para este cliente es ${caseId}. Dáselo ahora mismo para confirmar que su solicitud ha sido registrada correctamente.]`;
     if (agentName) contextHeader += `\n[SISTEMA: El asesor inmobiliario asignado es ${agentName}. Salúdalo en su nombre si el cliente pregunta por un asesor humano o si ya lo habías mencionado antes.]`;
 
     const enrichedPrompt = `${catalogContext}${contextHeader}\n\nMENSAJE DEL CLIENTE: ${prompt}`;

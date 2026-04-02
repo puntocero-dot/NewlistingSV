@@ -82,9 +82,12 @@ export async function conversationRoutes(app: FastifyInstance) {
               include: { agent: true }
             });
             if (existing) {
+              const updateData: any = { ...leadUpdateData };
+              if (!existing.caseId) updateData.caseId = generateCaseId();
+              
               identifiedLead = await prisma.lead.update({ 
                 where: { id: existing.id }, 
-                data: leadUpdateData,
+                data: updateData,
                 include: { agent: true }
               });
             } else {
@@ -107,20 +110,24 @@ export async function conversationRoutes(app: FastifyInstance) {
                include: { agent: true }
              });
              if (existing) {
-               identifiedLead = existing;
-               if (visitDate) identifiedLead = await prisma.lead.update({ 
-                 where: { id: existing.id }, 
-                 data: { preferences: { last_visit_request: visitDate } },
-                 include: { agent: true }
-               });
+                const updateData: any = { 
+                  preferences: visitDate ? { last_visit_request: visitDate } : undefined 
+                };
+                if (!existing.caseId) updateData.caseId = generateCaseId();
+
+                identifiedLead = await prisma.lead.update({ 
+                  where: { id: existing.id }, 
+                  data: updateData,
+                  include: { agent: true }
+                });
              } else {
                 identifiedLead = await prisma.lead.create({ 
                  data: { 
-                   phone: leadPhone, 
-                   name: 'Lead from ARIA Chat', 
-                   agentId: assignedAgentId,
-                   caseId: generateCaseId(),
-                   preferences: visitDate ? { last_visit_request: visitDate } : {}
+                    phone: leadPhone, 
+                    name: 'Lead from ARIA Chat', 
+                    agentId: assignedAgentId,
+                    caseId: generateCaseId(),
+                    preferences: visitDate ? { last_visit_request: visitDate } : {}
                  } as any,
                  include: { agent: true }
                });
