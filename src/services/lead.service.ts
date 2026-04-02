@@ -39,7 +39,7 @@ export class LeadService {
       // Find the agent with the oldest lastAssignedAt (nulls first)
       const nextAgent = await prisma.agent.findFirst({
         orderBy: [
-          { lastAssignedAt: 'asc' },
+          { lastAssignedAt: 'asc' } as any,
           { createdAt: 'asc' }
         ]
       });
@@ -50,7 +50,7 @@ export class LeadService {
         // Update lastAssignedAt to move this agent to the end of the queue
         await prisma.agent.update({
           where: { id: nextAgent.id },
-          data: { lastAssignedAt: new Date() }
+          data: { lastAssignedAt: new Date() } as any
         });
 
         return nextAgent.id;
