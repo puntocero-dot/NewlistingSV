@@ -34,7 +34,8 @@ export class UserService {
     });
   }
 
-  async resetPassword(id: string, newPassword: string) {
+  async resetPassword(id: string, newPasswordRaw: string) {
+    const newPassword = newPasswordRaw.trim();
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     return prisma.user.update({
       where: { id },
