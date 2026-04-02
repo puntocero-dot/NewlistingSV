@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { aiService } from '../services/ai.service';
 import { emailService } from '../services/email.service';
+import { leadService } from '../services/lead.service';
 import { prisma } from '../models';
 
 const chatSchema = z.object({
@@ -63,11 +64,13 @@ export async function conversationRoutes(app: FastifyInstance) {
       const generateCaseId = () => `NL-${Math.floor(1000 + Math.random() * 9000)}`;
 
       if (emailMatch || phoneMatch || visitDate) {
-        const leadEmail = emailMatch ? emailMatch[1] : null;
-        const leadPhone = phoneMatch ? phoneMatch[1] : null;
-        
         try {
-          const defaultAgent = await prisma.agent.findFirst();
+          const leadEmail = emailMatch ? emailMatch[1] : null;
+          const leadPhone = phoneMatch ? phoneMatch[1] : null;
+
+          // Smart Assignment Logic
+          const assignedAgentId = await leadService.getSmartAgentAssignment(leadEmail || undefined, leadPhone || undefined);
+
           const leadUpdateData: any = {
             phone: leadPhone || undefined,
             preferences: visitDate ? { last_visit_request: visitDate } : undefined,
@@ -90,7 +93,7 @@ export async function conversationRoutes(app: FastifyInstance) {
                   email: leadEmail, 
                   phone: leadPhone, 
                   name: 'Lead from ARIA Chat', 
-                  agentId: defaultAgent?.id,
+                  agentId: assignedAgentId,
                   caseId: generateCaseId(),
                   preferences: visitDate ? { last_visit_request: visitDate } : {}
                 } as any,
@@ -115,7 +118,7 @@ export async function conversationRoutes(app: FastifyInstance) {
                  data: { 
                    phone: leadPhone, 
                    name: 'Lead from ARIA Chat', 
-                   agentId: defaultAgent?.id,
+                   agentId: assignedAgentId,
                    caseId: generateCaseId(),
                    preferences: visitDate ? { last_visit_request: visitDate } : {}
                  } as any,
@@ -126,8 +129,6 @@ export async function conversationRoutes(app: FastifyInstance) {
 
           if (identifiedLead?.agent) {
             agentInfo = identifiedLead.agent.name;
-          } else if (defaultAgent) {
-            agentInfo = defaultAgent.name;
           }
 
           // Notify agent if new info arrived

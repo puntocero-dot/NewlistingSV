@@ -1,5 +1,6 @@
 import { prisma } from '../models';
 import bcrypt from 'bcrypt';
+import { leadService } from './lead.service';
 
 export class AuthService {
   async register(data: any) {
@@ -30,8 +31,14 @@ export class AuthService {
     }
 
     if (user.role === 'CLIENT') {
+      const assignedAgentId = await leadService.getSmartAgentAssignment(user.email);
       await prisma.lead.create({
-        data: { userId: user.id, email: user.email, name: name || 'Client' }
+        data: { 
+          userId: user.id, 
+          email: user.email, 
+          name: name || 'Client',
+          agentId: assignedAgentId
+        }
       });
     }
 

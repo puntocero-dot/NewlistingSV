@@ -14,7 +14,17 @@ export async function leadsRoutes(app: FastifyInstance) {
   // Solo los agentes o admins pueden ver leads
   app.get('/', { preHandler: [app.requireAgent] }, async (request, reply) => {
     try {
+      const { id: userId, role } = request.user;
+      let whereFilter: any = {};
+
+      if (role === 'AGENT') {
+        const agent = await prisma.agent.findUnique({ where: { userId } });
+        if (!agent) return reply.status(403).send({ error: 'Agent profile not found' });
+        whereFilter.agentId = agent.id;
+      }
+
       const leads = await prisma.lead.findMany({
+        where: whereFilter,
         orderBy: { createdAt: 'desc' },
       });
       return leads;
@@ -32,7 +42,17 @@ export async function leadsRoutes(app: FastifyInstance) {
     }
     try {
       const { id } = request.params as { id: string };
+      const { id: userId, role } = request.user;
       const { status, appointmentDate, notes } = parsed.data;
+
+      // Ownership check for agents
+      if (role === 'AGENT') {
+        const agent = await prisma.agent.findUnique({ where: { userId } });
+        const lead = await prisma.lead.findUnique({ where: { id } });
+        if (!agent || !lead || lead.agentId !== agent.id) {
+          return reply.status(403).send({ error: 'Access denied: You do not own this lead' });
+        }
+      }
 
       const updated = await prisma.lead.update({
         where: { id },

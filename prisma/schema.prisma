@@ -76,6 +76,7 @@ model Agent {
   calendar   String?    // Google Calendar ID
   properties Property[]
   leads      Lead[]
+  lastAssignedAt DateTime?
   createdAt  DateTime   @default(now())
 }
 
